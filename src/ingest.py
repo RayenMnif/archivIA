@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import argparse
+import os
 from pathlib import Path
+import shutil
 
 import cv2
 import whisper
@@ -31,6 +33,37 @@ def extract_frame(video_path: Path, seconds: float, destination: Path) -> None:
         capture.release()
 
 
+def configure_ffmpeg(explicit_path: Path | None) -> str:
+    """Make ffmpeg available to Whisper, including portable Winget installs."""
+    candidates: list[Path] = []
+    if explicit_path is not None:
+        candidate = explicit_path.expanduser()
+        if candidate.is_dir():
+            candidate /= "ffmpeg.exe" if os.name == "nt" else "ffmpeg"
+        candidates.append(candidate)
+
+    found_on_path = shutil.which("ffmpeg")
+    if found_on_path:
+        return found_on_path
+
+    local_app_data = os.environ.get("LOCALAPPDATA")
+    if os.name == "nt" and local_app_data:
+        winget_packages = Path(local_app_data) / "Microsoft" / "WinGet" / "Packages"
+        candidates.extend(
+            winget_packages.glob("Gyan.FFmpeg_*/ffmpeg-*/bin/ffmpeg.exe")
+        )
+
+    for candidate in candidates:
+        if candidate.is_file():
+            os.environ["PATH"] = str(candidate.parent) + os.pathsep + os.environ.get("PATH", "")
+            return str(candidate)
+
+    raise RuntimeError(
+        "ffmpeg est introuvable. Installez-le et ajoutez son dossier bin au PATH, "
+        "ou indiquez ce dossier avec --ffmpeg-bin."
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Indexer une vidéo d'archive en local.")
     parser.add_argument("--video", required=True, type=Path)
@@ -39,6 +72,7 @@ def main() -> None:
     parser.add_argument("--allowed-uses", required=True, help="Usages autorisés pour cette démonstration")
     parser.add_argument("--index", type=Path, default=Path("data/index.json"))
     parser.add_argument("--frames-dir", type=Path, default=Path("data/frames"))
+    parser.add_argument("--ffmpeg-bin", type=Path, default=None, help="Dossier contenant ffmpeg.exe (facultatif)")
     parser.add_argument("--whisper-model", choices=("tiny", "base", "small"), default="base")
     parser.add_argument("--language", default=None, help="Code langue Whisper facultatif, par ex. fr ou ar")
     args = parser.parse_args()
@@ -46,6 +80,12 @@ def main() -> None:
     video_path = args.video.expanduser().resolve()
     if not video_path.is_file():
         parser.error(f"Vidéo introuvable : {video_path}")
+
+    try:
+        ffmpeg_path = configure_ffmpeg(args.ffmpeg_bin)
+    except RuntimeError as error:
+        parser.error(str(error))
+    print(f"FFmpeg : {ffmpeg_path}")
 
     print("Détection des scènes…")
     video = open_video(str(video_path))

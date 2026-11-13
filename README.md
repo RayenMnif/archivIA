@@ -24,7 +24,16 @@
 
 <p align="center"><em>Exemple de recherche sur un extrait de test local. Les scores sont indicatifs ; chaque résultat reste « proposé ».</em></p>
 
+<<<<<<< HEAD
 > **Preuve terrain :** le problème est une **hypothèse de travail**, pas encore validée par des entretiens. La section 1 documente la méthode et l'espace réservé aux comptes rendus.
+=======
+- Aucun clip autorisé n'est fourni dans le dépôt : l'équipe doit choisir un fichier dont elle peut justifier les droits et usages.
+- Aucun test de qualité, de vitesse ou de précision n'a encore été consigné. La qualité du français, de l'arabe et du tunisien n'est donc pas mesurée.
+- Le modèle CLIP configuré utilise des poids LAION `ViT-B-32`; sa pertinence pour des requêtes françaises ou tunisiennes doit être évaluée, pas présumée.
+- Premier contrôle manuel rapporté par l'équipe : pour la requête « la Terre vue depuis l'espace » sur `test.mp4`, deux résultats affichés ont été vérifiés et jugés pertinents. Il s'agit d'un contrôle ponctuel, pas d'une mesure de précision ni d'un benchmark.
+- La transcription est faite sur le CPU et l'installation des modèles peut demander beaucoup de temps, d'espace disque et de mémoire. Les poids sont téléchargés par les bibliothèques au premier lancement, puis l'inférence se fait localement.
+- Pas encore d'interface de validation, d'OCR, de gestion multi-utilisateur ou de mesure d'empreinte énergétique.
+>>>>>>> ba9f94738e439a6e868ee6dd3a5cec9fb16d04c1
 
 ## Sommaire
 
