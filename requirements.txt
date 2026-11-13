@@ -1,0 +1,4 @@
+# Versions checked against their upstream package pages on 2026-11-13.
+openai-whisper==20250625
+open_clip_torch==4.2.2
+scenedetect==0.7.3

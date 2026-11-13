@@ -1,252 +1,106 @@
 # Archive Sauvée
 
-> **Rendre les archives audiovisuelles cherchables, sans jamais remplacer l'humain.**
-> Projet présenté au hackathon **IA Éthique 360** (5ᵉ édition), organisé par la Junior Entreprise INSAT et l'OIF.
-> Sous-thématique : *L'intégration de l'intelligence artificielle dans les industries audiovisuelles à vocation culturelle*.
+> Rendre les archives audiovisuelles cherchables, sans remplacer le jugement de l'archiviste.
 
----
+Projet pour le hackathon **IA Éthique 360**, consacré à l'intégration de l'IA dans les industries audiovisuelles à vocation culturelle.
 
-## Sommaire
+## 1. Problème étudié
 
-1. [Le problème](#1-le-problème)
-2. [Comment nous l'avons détecté](#2-comment-nous-lavons-détecté)
-3. [La solution](#3-la-solution)
-4. [Place de l'IA](#4-place-de-lia)
-5. [Démarche éthique à 360°](#5-démarche-éthique-à-360)
-6. [Architecture](#6-architecture)
-7. [Installation et démo](#7-installation-et-démo)
-8. [État actuel et limites](#8-état-actuel-et-limites)
-9. [Modèle économique](#9-modèle-économique)
-10. [Équipe et répartition des tâches](#10-équipe-et-répartition-des-tâches)
-11. [Licences et sources des données](#11-licences-et-sources-des-données)
-12. [Prochaines étapes](#12-prochaines-étapes)
+Notre hypothèse est que retrouver une séquence dans une archive audiovisuelle peu documentée peut demander un visionnage manuel long et rendre des contenus culturels difficiles à réutiliser. **Cette hypothèse reste à valider sur le terrain.** Le cahier des charges du hackathon demande d'observer, d'écouter et de vérifier le problème auprès des personnes concernées. À ce jour, ce dépôt ne contient ni entretien documenté, ni observation attribuable, ni source de terrain vérifiée. Nous ne présentons donc pas cette hypothèse comme un constat établi.
 
----
+La prochaine étape terrain est un échange avec un ou une archiviste, documentaliste audiovisuel, documentariste ou enseignant en cinéma. La date, le rôle de la personne et ses propos ne seront ajoutés ici qu'après l'échange et avec son accord.
 
-## 1. Le problème
+## 2. Solution et état du prototype
 
-**En une phrase :**
+Le prototype en ligne de commande prend une vidéo dont les droits d'utilisation ont été vérifiés, détecte ses changements de scène, extrait une image clé par scène, transcrit l'audio avec Whisper, calcule des représentations visuelles avec OpenCLIP et enregistre les résultats dans un index JSON. La recherche classe les scènes à partir d'une requête texte et affiche les horodatages, la transcription disponible et un score de similarité indicatif.
 
-> Les **archivistes et chercheurs** rencontrent **des difficultés à retrouver une séquence précise** dans des archives audiovisuelles **peu ou pas documentées (bandes anciennes, métadonnées absentes)**, ce qui entraîne **des contenus culturels inexploités, des heures de visionnage manuel et un risque de perte du patrimoine**.
+Les suggestions portent le statut `proposé`. Ce score n'est ni une probabilité calibrée ni une mesure de précision. L'outil ne valide aucune métadonnée à la place d'un archiviste et n'altère pas la vidéo originale. Il n'effectue ni reconnaissance faciale, ni détection d'émotions, ni inférence d'origine, de religion ou d'identité.
 
-**Qui est concerné ?** Cinémathèques, archives de télévision et de radio, documentaristes, chercheurs, producteurs.
+### Limites connues
 
-**Pourquoi c'est important ?** Un contenu qu'on ne peut pas retrouver est un contenu qui ne peut ni être étudié, ni réutilisé, ni transmis.
+- Aucun clip autorisé n'est fourni dans le dépôt : l'équipe doit choisir un fichier dont elle peut justifier les droits et usages.
+- Aucun test de qualité, de vitesse ou de précision n'a encore été consigné. La qualité du français, de l'arabe et du tunisien n'est donc pas mesurée.
+- Le modèle CLIP configuré utilise des poids LAION `ViT-B-32`; sa pertinence pour des requêtes françaises ou tunisiennes doit être évaluée, pas présumée.
+- La transcription est faite sur le CPU et l'installation des modèles peut demander beaucoup de temps, d'espace disque et de mémoire. Les poids sont téléchargés par les bibliothèques au premier lancement, puis l'inférence se fait localement.
+- Pas encore d'interface de validation, d'OCR, de gestion multi-utilisateur ou de mesure d'empreinte énergétique.
 
----
+## 3. Rôle de l'IA
 
-## 2. Comment nous l'avons détecté
-
-> **Note de transparence :** À ce stade de la première soumission, ce problème est une **hypothèse en cours de validation**. N'ayant pas pu obtenir d'entretien direct avec les responsables des radios ou de la Cinémathèque locale dans les délais impartis, nous nous sommes basés sur la documentation publique concernant la numérisation des archives.
-
-| Source | Détail | Date |
+| Étape | Outil | Sortie et contrôle humain |
 |---|---|---|
-| Recherche documentaire | Rapports sur les défis de numérisation du patrimoine audiovisuel (absence récurrente de métadonnées) | Nov. 2026 |
-| Observation de l'écosystème | Les documentaristes se plaignent fréquemment du temps passé à visionner des rushs non indexés. | Nov. 2026 |
+| Découpage | PySceneDetect | Limites de scènes proposées automatiquement |
+| Transcription | Whisper | Texte proposé, à écouter et corriger |
+| Recherche visuelle | OpenCLIP | Similarité texte-image indicative, à interpréter |
+| Recherche textuelle | Correspondance de mots simple | Signal complémentaire, pas une compréhension garantie |
 
-**Notre plan pour valider cette hypothèse (Prochaines étapes) :** 
-Nous prévoyons de contacter directement les archivistes de l'Établissement de la Télévision Tunisienne et de la Cinémathèque Tunisienne lors de la phase d'accompagnement pour affiner notre solution avec leurs retours terrain.
+Ces modèles pré-entraînés ne sont pas réentraînés par ce prototype. Les appels de calcul sont locaux une fois les dépendances et poids installés. L'installation initiale nécessite toutefois un accès aux dépôts de paquets et au téléchargement des poids.
 
----
+## 4. Éthique à 360°
 
-## 3. La solution
+- **Créateurs :** l'index est une aide à la consultation; l'archiviste garde la décision et doit pouvoir corriger ou rejeter les propositions.
+- **Droits :** chaque vidéo indexée doit déclarer titulaire, licence/statut et usages autorisés. Ces champs sont obligatoires lors de l'ingestion; ils ne constituent pas une vérification juridique.
+- **Données :** ne pas soumettre de vidéo sans droit d'accès et d'usage suffisant. L'index contient des transcriptions, des chemins de fichiers et des représentations numériques; il doit être protégé comme le contenu source.
+- **Cultures et langues :** les performances sur le français, l'arabe et le tunisien restent à mesurer. Les erreurs de transcription ou de recherche peuvent rendre des séquences moins visibles.
+- **Transparence :** la sortie indique qu'elle est proposée par une IA et montre un score indicatif. L'interface actuelle reste la ligne de commande.
+- **Planète :** l'indexation exécute plusieurs modèles et consomme du calcul. Aucun relevé énergétique n'a été effectué; éviter de revendiquer un gain environnemental mesuré.
 
-**Archive Sauvée** est un outil qui prend une vidéo d'archive et en construit un **index consultable**. On peut ensuite y chercher comme sur un moteur de recherche, par exemple *« scènes de marché avec foule »*.
-
-Pour chaque vidéo, l'outil :
-
-1. **découpe** la vidéo en scènes ;
-2. **transcrit** la parole (français, arabe, dialecte tunisien, mélange de langues) ;
-3. **décrit** le contenu visuel de chaque scène ;
-4. **permet la recherche** en langage naturel et renvoie les moments correspondants avec leur horodatage ;
-5. **laisse l'archiviste valider ou corriger** chaque proposition.
-
-**Principe fondamental :** l'IA **propose**, l'humain **décide**. La vidéo originale n'est **jamais modifiée**.
-
----
-
-## 4. Place de l'IA
-
-| Étape | Technologie | Pourquoi l'IA est nécessaire |
-|---|---|---|
-| Détection de scènes | PySceneDetect | Automatiser un découpage qui prendrait des heures à la main |
-| Transcription | Whisper (modèle ouvert, exécution locale) | Rendre la parole cherchable |
-| Description visuelle et recherche | Embeddings CLIP | Chercher des images avec des mots, sans étiquetage manuel |
-
-**Ce que l'IA ne fait pas :** elle ne modifie pas les œuvres, n'identifie pas les personnes par leur visage et ne prend aucune décision finale.
-
----
-
-## 5. Démarche éthique à 360°
-
-Nous examinons notre projet sous les six angles du cahier des charges.
-
-### 👤 Les créateurs : qui garde la main ?
-- L'archiviste **valide, corrige ou rejette** chaque transcription et chaque étiquette.
-- L'outil **décrit** les œuvres, il ne les **transforme** pas.
-- **Risque :** l'utilisateur fait trop confiance aux suggestions. **Atténuation :** affichage d'un niveau de confiance et statut « à valider » par défaut.
-
-### ⚖️ Les droits : consentement, droits d'auteur
-- Chaque document indexé porte une **fiche de droits** (titulaire, licence, usages autorisés). Dans notre prototype actuel, un champ 'Droits et Licence' est obligatoirement renseigné avant l'analyse.
-- Nos démonstrations utilisent **uniquement** des vidéos libres de droits (voir [§ 11](#11-licences-et-sources-des-données)).
-- **Risque :** indexer une œuvre dont les droits sont flous. **Atténuation :** champ « droits » obligatoire avant diffusion.
-
-### 🗃️ Les données : d'où viennent-elles ?
-- Nous **n'entraînons aucun modèle** : nous utilisons des modèles pré-entraînés ouverts, dont nous citons les licences.
-- Aucun contenu n'est collecté sans autorisation.
-- **Risque :** biais hérités des modèles pré-entraînés. **Atténuation :** tests sur nos propres extraits et limites publiées (§ 8).
-
-### 🌍 Cultures et langues : que met-on en avant, qu'efface-t-on ?
-- Le projet cible le français, l'arabe et le **dialecte tunisien**, souvent mal couverts par les outils grand public.
-- **Risque :** une transcription moins fiable sur le dialecte et les mélanges de langues peut invisibiliser ces contenus. **Atténuation :** mesure honnête de la précision, validation humaine, enrichissement futur avec des locuteurs.
-- Les descriptions visuelles restent **neutres** : pas de déduction sur l'origine, la religion ou les émotions des personnes.
-
-### 🔎 La transparence : le public sait-il ce que fait l'IA ?
-- Chaque étiquette est marquée **« générée par IA »** et indique son **statut de validation** (proposée / validée par un humain).
-- Les résultats de recherche indiquent leur niveau de confiance.
-- Le code et la méthode sont **ouverts** dans ce dépôt.
-
-### 🌱 La planète : quel coût énergétique pour quel bénéfice ?
-- Modèles **de petite taille**, exécutés **en local**, sans appel permanent à un service cloud gourmand en énergie.
-- Traitement **une seule fois** par document, puis réutilisation de l'index textuel très léger.
-- Sur notre prototype, l'analyse complète d'une minute de vidéo prend moins de deux minutes sur un processeur standard (CPU), limitant considérablement l'empreinte carbone.
-
-### Risques résiduels reconnus
-- Précision limitée sur l'audio dégradé et le dialecte.
-- Descriptions visuelles parfois erronées.
-- La qualité finale dépend entièrement d'une validation humaine disponible.
-
----
-
-## 6. Architecture
+## 5. Architecture
 
 ```mermaid
 flowchart LR
-    A[Vidéo d'archive] --> B[Découpage en scènes]
-    A --> C[Transcription - Whisper]
-    B --> D[Image clé par scène]
-    D --> E[Embeddings visuels - CLIP]
-    C --> G[(Index de recherche)]
-    E --> G
-    G --> H[Recherche en langage naturel]
-    H --> I[Résultats + horodatage + confiance]
-    I --> J[Validation par l'archiviste]
+  V[Vidéo source, inchangée] --> S[Détection de scènes]
+  S --> K[Image clé par scène]
+  V --> W[Transcription Whisper]
+  K --> C[OpenCLIP]
+  K --> J[(Index JSON: scènes, droits, vecteurs)]
+  W --> J
+  J --> Q[Recherche texte]
+  Q --> R[Horodatages, transcription, score indicatif]
+  R --> H[Validation humaine: à faire]
 ```
 
-**Structure du dépôt** 
+## 6. Installation et démonstration
 
-```text
-archive-sauvee/
-├── README.md
-├── requirements.txt
-├── data/
-│   └── clips/            # Extraits de démonstration du domaine public
-├── src/
-│   ├── ingest.py         # Découpage, transcription, embeddings
-│   ├── search.py         # Recherche en langage naturel
-│   └── app.py            # Interface locale Streamlit/Gradio
-└── LICENSE
+Prérequis : Python 3.10 ou ultérieur, `ffmpeg` accessible dans le `PATH`, et une connexion Internet lors de l'installation et du premier téléchargement des poids.
+
+```powershell
+git clone https://github.com/amine-jelassi7/IA-ethique-Hackathon.git
+cd IA-ethique-Hackathon
+py -3 -m venv .venv
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
----
+Sous macOS/Linux, créez l'environnement avec `python3 -m venv .venv`, activez-le avec `source .venv/bin/activate`, puis exécutez les mêmes commandes `python -m pip`.
 
-## 7. Installation et démo
+Placez votre vidéo autorisée dans `data/clips/` (ce dossier est ignoré par Git), puis renseignez ses droits réels :
 
-**Prérequis :** Python 3.10+, `ffmpeg` installé.
-
-```bash
-# 1. Cloner le dépôt
-git clone https://github.com/VOTRE_COMPTE/archive-sauvee.git
-cd archive-sauvee
-
-# 2. Installer les dépendances
-python -m venv .venv
-source .venv/bin/activate        # Windows : .venv\Scripts\activate
-pip install -r requirements.txt
-
-# 3. Indexer un extrait de démonstration
-python src/ingest.py --video data/clips/extrait_demo.mp4
-
-# 4. Lancer une recherche (ou l'interface web)
-python src/app.py
+```powershell
+python src/ingest.py --video data/clips/mon_extrait.mp4 --rights-holder "TITULAIRE À RENSEIGNER" --license "LICENCE OU STATUT VÉRIFIÉ" --allowed-uses "USAGES AUTORISÉS À RENSEIGNER"
+python src/search.py "une scène de marché" --top-k 5
 ```
 
-**Vidéo de démonstration :** *[Lien du video à ajouter pour la soumission finale]*
+Les valeurs d'exemple doivent être remplacées par les informations vérifiées du clip. Une incertitude sur les droits doit être signalée explicitement; ne pas présenter le fichier comme libre de droits. L'index est écrit dans `data/index.json` et les images extraites dans `data/frames/`; ces éléments sont ignorés par Git.
 
----
+## 7. Données, licences et provenance
 
-## 8. État actuel et limites
-
-Nous préférons être transparents sur ce qui fonctionne et ce qui ne fonctionne pas encore dans ce prototype.
-
-| Fonctionnalité | État |
+| Ressource | État |
 |---|---|
-| Découpage en scènes | ✅ Fonctionnel |
-| Transcription (français) | ✅ Fonctionnel |
-| Transcription (dialecte tunisien) | 🟡 Partiel (précision limitée sur les termes très locaux) |
-| Recherche visuelle en langage naturel | ✅ Fonctionnel |
-| OCR du texte à l'écran | ❌ Prévu pour de futures itérations |
-| Interface de validation | ✅ Maquette locale fonctionnelle |
-| Fiche de droits par document | 🟡 Partiellement simulée en base de données JSON |
+| Vidéos de démonstration | Aucune incluse. Source, titulaire, licence et usages devront être documentés pour chaque clip retenu. |
+| PySceneDetect | BSD 3-Clause selon le dépôt officiel. |
+| Whisper et OpenCLIP | Bibliothèques et poids configurés; vérifier et documenter séparément les licences applicables aux versions et poids effectivement distribués avant publication. |
+| Licence de ce projet | À décider par l'équipe; aucun fichier de licence n'est encore fourni. |
 
+Références techniques : [PySceneDetect](https://github.com/Breakthrough/PySceneDetect), [Whisper](https://github.com/openai/whisper), [OpenCLIP et ses modèles pré-entraînés](https://github.com/mlfoundations/open_clip).
 
+## 8. Équipe et prochaines étapes
 
----
+Les noms, rôles, disponibilité matérielle et répartition des tâches doivent être confirmés par l'équipe avant d'être publiés. Ils ne sont pas documentés dans cette version.
 
-## 9. Modèle économique
-
-- **Clients visés :** cinémathèques, archives de télévision et de radio, universités, documentaristes, producteurs indépendants.
-- **Proposition de valeur :** retrouver et réutiliser un patrimoine audiovisuel sans visionnage manuel chronophage, avec un outil exécutable localement (sans cloud) et respectueux des droits des créateurs.
-- **Revenus envisagés :** Modèle B2B via abonnement logiciel ou licence d'exploitation par structure, couplé à des prestations d'accompagnement à l'indexation.
-- **Soutien à la création :** chaque œuvre indexée conserve sa fiche de droits, ce qui facilite la rémunération des ayants droit lors d'une réutilisation commerciale.
-
----
-
-## 10. Équipe et répartition des tâches
-
-> **Note de l'équipe :** Le développement logiciel de ce prototype a été un effort collaboratif. Tous les membres de l'équipe ont activement participé à l'écriture du code source (scripts d'ingestion, modèles IA, interface), en plus des responsabilités d'organisation listées ci-dessous.
-
-| Membre | Rôle | Responsabilités |
-|---|---|---|
-| **[Amine Jelassi]** | Coordination & Pitch | Contact organisateurs, gestion de projet, présentation finale |
-| **[Rayen Mnif]** | Terrain et éthique | Veille documentaire, section éthique, modélisation des risques |
-| **[Youssef Ben Arbia]** | IA / Data Pipeline | Implémentation de Whisper, CLIP, scripts d'ingestion |
-| **[Med Aziz Ayari]** | Interface et démo | Développement Streamlit/Gradio, enregistrement de la vidéo |
-
-
----
-
-## 11. Licences et sources des données
-
-**Vidéos de démonstration**
-
-| Fichier | Source | Licence / droits | Autorisation |
-|---|---|---|---|
-| `placeholder` | `placeholder` | `placeholder` | `placeholder` |
-
-**Modèles et bibliothèques utilisés**
-
-| Composant | Licence |
-|---|---|
-| Whisper (OpenAI) | MIT License |
-| OpenCLIP | MIT License |
-| PySceneDetect | BSD 3-Clause |
-
-**Licence du projet :** MIT License
-
----
-
-## 12. Prochaines étapes
-
-- [ ] Valider le besoin et les priorités avec des archivistes de la Cinémathèque Tunisienne ou d'une radio locale.
-- [ ] Mesurer concrètement la précision de la transcription sur le dialecte tunisien et l'améliorer via fine-tuning.
-- [ ] Connecter l'interface de validation actuelle à une véritable base de données persistante (ex: PostgreSQL).
-- [ ] Préparer le Business Model Canvas complet pour la grande finale du 25 novembre.
-
----
-
-## Contact
-
-Équipe **[jweh ser el njeh]** · **[amine.jelassi7@gmail.com]**
-
-Projet réalisé dans le cadre du hackathon **IA Éthique 360** · Junior Entreprise INSAT × Organisation internationale de la Francophonie.
+- [ ] Obtenir et consigner un retour de terrain réel.
+- [ ] Choisir un ou plusieurs clips et documenter leurs droits et usages autorisés.
+- [ ] Exécuter l'ingestion et noter les erreurs observées sur français, arabe et tunisien, sans inventer de métriques.
+- [ ] Faire une démonstration reproductible sur une machine propre et consigner les contraintes matérielles.
+- [ ] Décider de la licence du projet et vérifier les licences des modèles/poids effectivement utilisés.
+- [ ] Confirmer l'équipe, sa répartition des tâches et préparer les livrables du hackathon en français.
