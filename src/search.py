@@ -9,6 +9,7 @@ from pathlib import Path
 import torch
 
 from common import load_clip_model, read_index, text_embedding
+from ui import enable_ansi, search_header, search_note, search_result, status
 
 
 def terms(text: str) -> set[str]:
@@ -16,10 +17,12 @@ def terms(text: str) -> set[str]:
 
 
 def main() -> None:
+    enable_ansi()
     parser = argparse.ArgumentParser(description="Rechercher des scènes dans un index local.")
     parser.add_argument("query", help="Recherche en français ou dans une autre langue")
     parser.add_argument("--index", type=Path, default=Path("data/index.json"))
     parser.add_argument("--top-k", type=int, default=5)
+    parser.add_argument("--no-anim", action="store_true", help="Désactiver les animations du terminal")
     args = parser.parse_args()
     if args.top_k < 1:
         parser.error("--top-k doit être supérieur ou égal à 1")
@@ -29,6 +32,8 @@ def main() -> None:
     if not scenes:
         parser.error(f"Aucune scène dans l'index : {args.index}")
 
+    search_header(args.query)
+    status("Analyse des vidéos en cours…", animated=not args.no_anim)
     model, _, tokenizer, device = load_clip_model()
     query_vector = torch.tensor(text_embedding(args.query, model, tokenizer, device))
     query_terms = terms(args.query)
@@ -43,14 +48,9 @@ def main() -> None:
         ranked.append((score, similarity, scene))
 
     ranked.sort(key=lambda item: item[0], reverse=True)
-    print("Les scores sont indicatifs et ne sont pas des probabilités de justesse.")
-    for score, similarity, scene in ranked[: args.top_k]:
-        print(
-            f"\n{scene['start']}–{scene['end']} | similarité visuelle indicative : {similarity:.3f} "
-            f"| score combiné : {score:.3f} | statut : {scene.get('status', 'proposé')}"
-        )
-        print(f"Vidéo : {scene.get('video_path', '') or scene.get('scene_id', '')}")
-        print(f"Transcription : {scene.get('transcript') or '[aucune parole transcrite]'}")
+    for number, (score, similarity, scene) in enumerate(ranked[: args.top_k], start=1):
+        search_result(number, score, similarity, scene, animated=not args.no_anim)
+    search_note()
 
 
 if __name__ == "__main__":

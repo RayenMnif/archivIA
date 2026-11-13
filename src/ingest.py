@@ -12,6 +12,7 @@ import whisper
 from scenedetect import ContentDetector, SceneManager, open_video
 
 from common import image_embedding, load_clip_model, read_index, write_index
+from ui import enable_ansi, message, status
 
 
 def format_time(seconds: float) -> str:
@@ -65,6 +66,7 @@ def configure_ffmpeg(explicit_path: Path | None) -> str:
 
 
 def main() -> None:
+    enable_ansi()
     parser = argparse.ArgumentParser(description="Indexer une vidéo d'archive en local.")
     parser.add_argument("--video", required=True, type=Path)
     parser.add_argument("--rights-holder", required=True, help="Titulaire des droits, ou mention explicite de l'incertitude")
@@ -75,6 +77,7 @@ def main() -> None:
     parser.add_argument("--ffmpeg-bin", type=Path, default=None, help="Dossier contenant ffmpeg.exe (facultatif)")
     parser.add_argument("--whisper-model", choices=("tiny", "base", "small"), default="base")
     parser.add_argument("--language", default=None, help="Code langue Whisper facultatif, par ex. fr ou ar")
+    parser.add_argument("--no-anim", action="store_true", help="Désactiver les animations du terminal")
     args = parser.parse_args()
 
     video_path = args.video.expanduser().resolve()
@@ -85,9 +88,9 @@ def main() -> None:
         ffmpeg_path = configure_ffmpeg(args.ffmpeg_bin)
     except RuntimeError as error:
         parser.error(str(error))
-    print(f"FFmpeg : {ffmpeg_path}")
+    message(f"FFmpeg : {ffmpeg_path}")
 
-    print("Détection des scènes…")
+    status("Détection des scènes…", animated=not args.no_anim)
     video = open_video(str(video_path))
     manager = SceneManager()
     manager.add_detector(ContentDetector())
@@ -99,14 +102,14 @@ def main() -> None:
             raise RuntimeError("La durée de la vidéo n'a pas pu être déterminée.")
         scenes = [(video.base_timecode, video.base_timecode + video.duration)]
 
-    print(f"Transcription Whisper ({args.whisper_model})…")
+    status(f"Transcription Whisper ({args.whisper_model})…", animated=not args.no_anim)
     transcriber = whisper.load_model(args.whisper_model, device="cpu")
     transcription = transcriber.transcribe(
         str(video_path), language=args.language, fp16=False, verbose=False
     )
     transcript_segments = transcription.get("segments", [])
 
-    print("Calcul des représentations visuelles CLIP…")
+    status("Calcul des représentations visuelles CLIP…", animated=not args.no_anim)
     model, preprocess, _, device = load_clip_model()
     frame_dir = args.frames_dir / video_path.stem
     records = []
@@ -155,7 +158,7 @@ def main() -> None:
         }
     )
     write_index(args.index, index)
-    print(f"{len(records)} scènes indexées dans {args.index}. La vidéo source n'a pas été modifiée.")
+    message(f"{len(records)} scènes indexées dans {args.index}. La vidéo source n'a pas été modifiée.", "success")
 
 
 if __name__ == "__main__":
