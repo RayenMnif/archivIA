@@ -24,7 +24,6 @@
 
 <p align="center"><em>Exemple de recherche sur un extrait de test local. Les scores sont indicatifs ; chaque résultat reste « proposé ».</em></p>
 
-<<<<<<< HEAD
 > **Preuve terrain :** le problème est une **hypothèse de travail**, pas encore validée par des entretiens. La section 1 documente la méthode et l'espace réservé aux comptes rendus.
 =======
 - Aucun clip autorisé n'est fourni dans le dépôt : l'équipe doit choisir un fichier dont elle peut justifier les droits et usages.
@@ -33,7 +32,6 @@
 - Premier contrôle manuel rapporté par l'équipe : pour la requête « la Terre vue depuis l'espace » sur `test.mp4`, deux résultats affichés ont été vérifiés et jugés pertinents. Il s'agit d'un contrôle ponctuel, pas d'une mesure de précision ni d'un benchmark.
 - La transcription est faite sur le CPU et l'installation des modèles peut demander beaucoup de temps, d'espace disque et de mémoire. Les poids sont téléchargés par les bibliothèques au premier lancement, puis l'inférence se fait localement.
 - Pas encore d'interface de validation, d'OCR, de gestion multi-utilisateur ou de mesure d'empreinte énergétique.
->>>>>>> ba9f94738e439a6e868ee6dd3a5cec9fb16d04c1
 
 ## Sommaire
 
@@ -439,14 +437,14 @@ Le champ `embedding` (vecteur de 512 nombres) est omis pour la lisibilité ; l'i
 
 </details>
 
-### Équipe et rôles
+### Équipe 
 
-| Membre | Rôle proposé | Périmètre principal |
-|---|---|---|
-| **Amine Jelassi** | Pilotage produit et démonstration | Coordination, scénario de démo, revue d'intégration |
-| **Rayen Mnif** | Ingénierie logicielle | Chaîne d'ingestion, index JSON, recherche |
-| **Med Aziz Ayari** | Données et évaluation | Corpus de test, transcription, mesures multilingues |
-| **Youssef Ben Arbia** | Droits, éthique et documentation | Cadre éthique, licences, README, sources |
+| Name | Role |  
+| :--- | :--- |
+| [@amine-jelassi7](https://github.com/amine-jelassi7) | Software Engineering Student | 
+| [@RayenMnif](https://github.com/RayenMnif) | Software Engineering Student |  
+| @XAFKTHECODER](https://github.com/XAFKTHECODER) | Software Engineering Student | 
+|  [@YWilix](https://github.com/YWilix) | Software Engineering Student |
 
 Trois membres sont étudiants en génie logiciel à l'INSAT. La répartition ci-dessus est proposée pour le hackathon ; elle doit être confirmée par l'équipe avant le rendu.
 
