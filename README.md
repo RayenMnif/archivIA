@@ -443,8 +443,8 @@ Le champ `embedding` (vecteur de 512 nombres) est omis pour la lisibilité ; l'i
 | :--- | :--- |
 | [@amine-jelassi7](https://github.com/amine-jelassi7) | Software Engineering Student | 
 | [@RayenMnif](https://github.com/RayenMnif) | Software Engineering Student |  
-| @XAFKTHECODER](https://github.com/XAFKTHECODER) | Software Engineering Student | 
-|  [@YWilix](https://github.com/YWilix) | Software Engineering Student |
+| [@XAFKTHECODER](https://github.com/XAFKTHECODER) | Software Engineering Student | 
+| [@YWilix](https://github.com/YWilix) | Software Engineering Student |
 
 Trois membres sont étudiants en génie logiciel à l'INSAT. La répartition ci-dessus est proposée pour le hackathon ; elle doit être confirmée par l'équipe avant le rendu.
 
