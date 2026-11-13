@@ -1,4 +1,4 @@
-"""Shared helpers for the Archive Sauvée command-line prototype."""
+"""Shared helpers for the ArchivIA command-line prototype."""
 
 from __future__ import annotations
 
