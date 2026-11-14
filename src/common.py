@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -14,6 +15,7 @@ MODEL_NAME = "ViT-B-32"
 PRETRAINED = "laion2b_s34b_b79k"
 
 
+@lru_cache(maxsize=1)
 def load_clip_model():
     """Load the visual-language model and its transforms on the available device."""
     device = "cuda" if torch.cuda.is_available() else "cpu"

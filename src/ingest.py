@@ -6,6 +6,7 @@ import argparse
 import os
 from pathlib import Path
 import shutil
+import hashlib
 
 import cv2
 import whisper
@@ -65,6 +66,59 @@ def configure_ffmpeg(explicit_path: Path | None) -> str:
     )
 
 
+def ingest_video(video_path: Path, rights: dict, *, frames_dir: Path = Path("data/frames"),
+                 whisper_model: str = "base", language: str | None = None,
+                 ffmpeg_bin: Path | None = None, library_root: Path | None = None,
+                 progress=None) -> list[dict]:
+    """Index one video and return its scene records; source media is untouched."""
+    video_path = video_path.expanduser().resolve()
+    if not video_path.is_file():
+        raise FileNotFoundError(f"Vidéo introuvable : {video_path}")
+    configure_ffmpeg(ffmpeg_bin)
+    if progress: progress("Détection des scènes")
+    video = open_video(str(video_path))
+    manager = SceneManager()
+    manager.add_detector(ContentDetector())
+    manager.detect_scenes(video=video)
+    scenes = manager.get_scene_list()
+    if not scenes:
+        duration = video.duration.get_seconds()
+        if duration <= 0:
+            raise RuntimeError("La durée de la vidéo n'a pas pu être déterminée.")
+        scenes = [(video.base_timecode, video.base_timecode + video.duration)]
+    if progress: progress("Transcription")
+    transcriber = whisper.load_model(whisper_model, device="cpu")
+    transcription = transcriber.transcribe(str(video_path), language=language, fp16=False, verbose=False)
+    transcript_segments = transcription.get("segments", [])
+    if progress: progress("Images clés")
+    relative = video_path.relative_to(library_root.resolve()) if library_root else Path(video_path.name)
+    safe = "_".join(relative.with_suffix("").parts)
+    suffix = hashlib.sha256(str(relative).encode("utf-8")).hexdigest()[:10]
+    frame_dir = frames_dir / f"{safe}_{suffix}"
+    if progress: progress("Représentations visuelles")
+    model, preprocess, _, device = load_clip_model()
+    records = []
+    for number, (start, end) in enumerate(scenes, start=1):
+        start_seconds, end_seconds = start.get_seconds(), end.get_seconds()
+        frame_path = frame_dir / f"scene_{number:04d}.jpg"
+        extract_frame(video_path, (start_seconds + end_seconds) / 2, frame_path)
+        transcript = " ".join(segment.get("text", "").strip() for segment in transcript_segments
+            if segment.get("start", 0) < end_seconds and segment.get("end", 0) > start_seconds).strip()
+        thumb = frame_path.with_name(frame_path.stem + "_thumb.jpg")
+        image = cv2.imread(str(frame_path))
+        if image is not None:
+            height, width = image.shape[:2]
+            scale = 320 / max(width, height)
+            cv2.imwrite(str(thumb), cv2.resize(image, (max(1, int(width*scale)), max(1, int(height*scale)))))
+        records.append({"scene_id": f"{suffix}:{number:04d}", "video_path": str(video_path),
+            "start_seconds": round(start_seconds, 3), "end_seconds": round(end_seconds, 3),
+            "start": format_time(start_seconds), "end": format_time(end_seconds),
+            "keyframe": str(frame_path.resolve()), "thumbnail": str(thumb.resolve()),
+            "embedding": image_embedding(frame_path, model, preprocess, device), "transcript": transcript,
+            "status": "proposé", "generated_by_ai": True})
+    return records
+
+
 def main() -> None:
     enable_ansi()
     parser = argparse.ArgumentParser(description="Indexer une vidéo d'archive en local.")
@@ -89,67 +143,23 @@ def main() -> None:
     except RuntimeError as error:
         parser.error(str(error))
     message(f"FFmpeg : {ffmpeg_path}")
-
-    status("Détection des scènes…", animated=not args.no_anim)
-    video = open_video(str(video_path))
-    manager = SceneManager()
-    manager.add_detector(ContentDetector())
-    manager.detect_scenes(video=video)
-    scenes = manager.get_scene_list()
-    if not scenes:
-        duration = video.duration.get_seconds()
-        if duration <= 0:
-            raise RuntimeError("La durée de la vidéo n'a pas pu être déterminée.")
-        scenes = [(video.base_timecode, video.base_timecode + video.duration)]
-
-    status(f"Transcription Whisper ({args.whisper_model})…", animated=not args.no_anim)
-    transcriber = whisper.load_model(args.whisper_model, device="cpu")
-    transcription = transcriber.transcribe(
-        str(video_path), language=args.language, fp16=False, verbose=False
-    )
-    transcript_segments = transcription.get("segments", [])
-
-    status("Calcul des représentations visuelles CLIP…", animated=not args.no_anim)
-    model, preprocess, _, device = load_clip_model()
-    frame_dir = args.frames_dir / video_path.stem
-    records = []
-    for number, (start, end) in enumerate(scenes, start=1):
-        start_seconds = start.get_seconds()
-        end_seconds = end.get_seconds()
-        midpoint = (start_seconds + end_seconds) / 2
-        frame_path = frame_dir / f"scene_{number:04d}.jpg"
-        extract_frame(video_path, midpoint, frame_path)
-        transcript = " ".join(
-            segment.get("text", "").strip()
-            for segment in transcript_segments
-            if segment.get("start", 0) < end_seconds and segment.get("end", 0) > start_seconds
-        ).strip()
-        records.append(
-            {
-                "scene_id": f"{video_path.stem}:{number:04d}",
-                "video_path": str(video_path),
-                "start_seconds": round(start_seconds, 3),
-                "end_seconds": round(end_seconds, 3),
-                "start": format_time(start_seconds),
-                "end": format_time(end_seconds),
-                "keyframe": str(frame_path.resolve()),
-                "embedding": image_embedding(frame_path, model, preprocess, device),
-                "transcript": transcript,
-                "status": "proposé",
-                "generated_by_ai": True,
-            }
-        )
+    def report(stage: str) -> None:
+        if stage == "Détection des scènes":
+            status("Détection des scènes…", animated=not args.no_anim)
+        elif stage == "Transcription":
+            status(f"Transcription Whisper ({args.whisper_model})…", animated=not args.no_anim)
+        elif stage == "Représentations visuelles":
+            status("Calcul des représentations visuelles CLIP…", animated=not args.no_anim)
+    records = ingest_video(video_path, {"holder": args.rights_holder, "license": args.license,
+        "allowed_uses": args.allowed_uses}, frames_dir=args.frames_dir, whisper_model=args.whisper_model,
+        language=args.language, ffmpeg_bin=args.ffmpeg_bin, progress=report)
 
     index = read_index(args.index)
     index["videos"] = [item for item in index["videos"] if item.get("path") != str(video_path)]
     index["videos"].append(
         {
             "path": str(video_path),
-            "rights": {
-                "holder": args.rights_holder,
-                "license": args.license,
-                "allowed_uses": args.allowed_uses,
-            },
+            "rights": {"holder": args.rights_holder, "license": args.license, "allowed_uses": args.allowed_uses},
             "models": {
                 "transcription": f"openai/whisper-{args.whisper_model}",
                 "visual_embedding": f"open_clip/{'ViT-B-32'}:{'laion2b_s34b_b79k'}",

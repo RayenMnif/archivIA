@@ -252,7 +252,7 @@ flowchart LR
 | Représentations vectorielles visuelles | **Fonctionne** | OpenCLIP ViT-B-32 ; pertinence multilingue non mesurée. |
 | Recherche | **Fonctionne** | Similarité + mots-clés ; score indicatif, non calibré. |
 | Métadonnées de droits | **Déclaratif** | Arguments obligatoires dans la CLI ; aucune vérification juridique. |
-| Interface de validation | **Prévu** | Pas encore d'interface ; l'index JSON peut être édité à la main. |
+| Interface de validation | **Prototype local** | Interface NiceGUI de recherche et de revue ; chaque décision reste humaine. |
 | Reconnaissance optique de caractères (OCR) / identification des locuteurs | **Non fait** | Pas de texte incrusté ni de séparation des voix. |
 | Mesure énergétique | **Non fait** | Aucun relevé kWh. |
 | Reconnaissance faciale, émotions, identité | **Refusé** | Hors périmètre, par choix éthique. |
@@ -289,8 +289,26 @@ La capture provient d'une exécution locale sur `test.mp4`, un extrait non versi
 | Calcul | PyTorch | via `open_clip_torch` ; CUDA si disponible |
 | Vidéo | OpenCV + `ffmpeg` | via `scenedetect` et le système |
 | Index | JSON | `schema_version: 1` |
-| Interface | CLI | `argparse` |
+| Interface | NiceGUI | Interface locale, ouverte sur `127.0.0.1:8080` |
 | Licence | MIT | voir [`LICENSE`](LICENSE) |
+
+## Interface
+
+L’interface desktop locale se lance avec :
+
+```bash
+python src/app.py
+```
+
+Elle écoute sur `http://127.0.0.1:8080`. L’interface est un prototype local : elle conserve un seul chemin de bibliothèque dans `data/settings.json` sur le disque et écrit les scènes, décisions et représentations dans l’index JSON local. Les résultats restent des propositions à examiner par une personne.
+
+Écrans de référence pour les deux vues :
+
+| Bibliothèque | Recherche |
+|---|---|
+| ![Écran de bibliothèque](docs/inspo/obsidian.webp) | ![Écran de recherche](docs/inspo/search.jpg) |
+
+Ces captures documentent les mises en page de référence ; elles ne représentent pas des captures prises depuis l’application exécutée.
 
 ### Installation
 
