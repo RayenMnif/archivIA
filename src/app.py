@@ -185,30 +185,44 @@ PROGRESS_BY_STAGE={'En attente':0,'Détection des scènes':10,'Transcription':30
 def update_ingest_progress(entry,stage):
     entry['stage']=stage
 
-def monitor_ingest(entries):
-    timer_ref={}
-    async def refresh_progress():
-        finished=True
-        for entry in entries:
-            stage=entry['stage']
-            widgets=entry.get('_progress_ui')
-            if widgets:
-                percent=PROGRESS_BY_STAGE.get(stage,0)
-                widgets['stage'].text=f"{entry['path'].name} · {stage}"
-                widgets['bar'].value=percent/100
-                widgets['percent'].text=f'{percent}%'
-            finished &= stage in ('Terminé','Échec')
-        if finished:
-            # The worker has persisted the index before reaching Terminé.
-            # Refresh the page once at completion so the new video appears.
-            await render.refresh()
-            timer_ref['timer'].cancel()
-    timer_ref['timer']=ui.timer(0.5,refresh_progress)
+def sync_ingest_progress():
+    """Poll the ingest queue and drive the progress widgets.
+
+    This timer lives on the page (not on a dialog), so it survives the
+    ``render.refresh()`` calls that rebuild the queue card and the widget
+    references stored on each entry.
+    """
+    recompose=False
+    for entry in state['queue']:
+        stage=entry.get('stage','En attente')
+        widgets=entry.get('_progress_ui')
+        if widgets and widgets['bar'].is_deleted:
+            entry.pop('_progress_ui',None)
+        elif widgets:
+            percent=PROGRESS_BY_STAGE.get(stage,0)
+            widgets['stage'].text=f"{entry['path'].name} · {stage}"
+            widgets['bar'].value=percent/100
+            widgets['percent'].text=f'{percent}%'
+        if stage in ('Terminé','Échec') and not entry.get('_progress_reported'):
+            entry['_progress_reported']=True
+            recompose=True
+    if recompose:
+        # The worker has persisted the index before reaching Terminé.
+        # Refresh once at completion so the new video appears.
+        render.refresh()
+    active=[entry for entry in state['queue'] if entry.get('stage')!='Droits requis']
+    if active and all(entry.get('stage') in ('Terminé','Échec') for entry in active):
+        # All ingestion work reached 100%: reconcile the library immediately
+        # so the freshly indexed videos show up and the finished queue clears.
+        # Reconcile replaces the queue, so this runs only once per batch.
+        try:
+            refresh_library(quiet=True)
+        except Exception:
+            render.refresh()
 
 def ingest(path,rights,entry=None):
     if entry is None:
         entry={'path':path,'stage':'En attente','error':None};state['queue'].append(entry)
-    monitor_ingest([entry])
     library_root=Path(state['root']).resolve()
     def worker():
         from ingest import ingest_video
@@ -221,7 +235,6 @@ def ingest(path,rights,entry=None):
     threading.Thread(target=worker,daemon=True).start()
 
 def ingest_batch(entries,rights):
-    monitor_ingest(entries)
     library_root=Path(state['root']).resolve()
     def worker():
         from ingest import ingest_video
@@ -236,7 +249,7 @@ def ingest_batch(entries,rights):
                 save_idx(data,library_root);entry['stage']='Terminé'
             except Exception as exc:entry.update(stage='Échec',error=str(exc))
     threading.Thread(target=worker,daemon=True).start()
-def refresh_library(quiet=False):
+def refresh_library(*,quiet=False):
     if state.get('index_error'):
         ui.notify('Index illisible : actualisation désactivée pour préserver le fichier.',type='negative')
         return
@@ -602,5 +615,6 @@ def keyboard(e):
 ui.keyboard(on_key=keyboard)
 if state['screen']!='library':refresh_results(refresh_ui=False)
 render()
+ui.timer(0.4,sync_ingest_progress)
 if state['screen']!='library':ui.timer(0.2,lambda:refresh_library(quiet=True),once=True)
 ui.run(host='127.0.0.1',port=8080,title='ArchivIA',reload=False,show=True)
