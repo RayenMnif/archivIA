@@ -6,7 +6,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
 [![Licence](https://img.shields.io/badge/Licence-MIT-2ea44f?style=flat-square)](LICENSE)
-[![Statut](https://img.shields.io/badge/Statut-Prototype%20CLI-f59e0b?style=flat-square)](#statut-du-prototype)
+[![Statut](https://img.shields.io/badge/Statut-Prototype%20local-f59e0b?style=flat-square)](#statut-du-prototype)
 [![IA locale](https://img.shields.io/badge/IA-100%25%20locale-6f42c1?style=flat-square)](#architecture-technique)
 ![Hackathon](https://img.shields.io/badge/Hackathon-IA%20%C3%89thique%20360-0a66c2?style=flat-square)
 
@@ -31,7 +31,7 @@
 - Le modèle CLIP configuré utilise des poids LAION `ViT-B-32`; sa pertinence pour des requêtes françaises ou tunisiennes doit être évaluée, pas présumée.
 - Premier contrôle manuel rapporté par l'équipe : pour la requête « la Terre vue depuis l'espace » sur `test.mp4`, deux résultats affichés ont été vérifiés et jugés pertinents. Il s'agit d'un contrôle ponctuel, pas d'une mesure de précision ni d'un benchmark.
 - Whisper utilise CUDA si disponible et revient au CPU sinon. L'installation des modèles peut demander beaucoup de temps, d'espace disque et de mémoire. Les poids sont téléchargés par les bibliothèques au premier lancement, puis l'inférence se fait localement.
-- Pas encore d'interface de validation, d'OCR, de gestion multi-utilisateur ou de mesure d'empreinte énergétique.
+- Interface locale de recherche et de validation livrée ; pas encore d'OCR, de gestion multi-utilisateur ni de mesure d'empreinte énergétique.
 
 ## Sommaire
 
@@ -51,7 +51,7 @@
 | **Problème** | Retrouver une séquence précise dans une archive audiovisuelle peu documentée demande un visionnage long et manuel. |
 | **Solution** | Un index local, multimodal et interrogeable en langage naturel, avec validation humaine prévue. |
 | **IA** | Détection de scènes, transcription Whisper, représentations vectorielles visuelles OpenCLIP. |
-| **Statut** | Chaîne de traitement en ligne de commande fonctionnelle de bout en bout sur un extrait de test local ; validation terrain à venir. |
+| **Statut** | Chaîne de traitement en ligne de commande et interface locale fonctionnelles de bout en bout sur un extrait de test local ; validation terrain à venir. |
 | **Éthique** | Six angles documentés, refus explicites, aucune décision automatique. |
 | **Équipe** | 4 membres ; répartition des rôles à confirmer. |
 
@@ -129,7 +129,7 @@ Aucun entretien exploitable à ce jour. Le tableau ci-dessous ne contient aucun 
 | **2. Indexation** | Les scènes et les métadonnées de droits | Écriture d'un index JSON local | `data/index.json` |
 | **3. Recherche** | Une requête en langage naturel | Similarité texte-image + recouvrement de mots dans la transcription | Scènes classées, horodatages, transcription, score indicatif |
 
-Le prototype est une interface en ligne de commande (CLI). Il ne modifie jamais la vidéo source : il lit, extrait et écrit un index dérivé. Les images clés et l'index restent sur la machine.
+Le prototype se compose d'une interface locale (NiceGUI) et d'outils en ligne de commande. Il ne modifie jamais la vidéo source : il lit, extrait et écrit un index dérivé. Les images clés et l'index restent sur la machine.
 
 ### Pourquoi l'IA est nécessaire
 
@@ -190,7 +190,7 @@ Les six angles ci-dessous ne sont pas une liste de cases à cocher. Ils décrive
 | **Droits** | Trois champs sont exigés à l'ingestion : titulaire, licence ou statut, usages autorisés. La CLI ne vérifie pas leur véracité. | Ingestion d'œuvres protégées, œuvres orphelines, confusion entre licence du code et droits du contenu, réutilisation non autorisée. | Fiche de droits par clip ; registre ; revue juridique avant pilote ; pas de distribution des clips ; procédure de retrait ; aucune publication automatique. |
 | **Données** | Traitement local, pas de cloud ; index minimal ; pas de reconnaissance faciale ni d'inférence identitaire. Les images clés et l'index sont ignorés par Git. | Contenus sensibles, données personnelles, fuite de l'index, conservation trop longue, accès non autorisé. | Minimisation ; stockage local ; contrôle d'accès et chiffrement prévus ; purge ; pas d'upload ; journal d'accès. |
 | **Cultures et langues** | Ne pas supposer que le français, l'arabe et le tunisien fonctionnent aussi bien. Le prototype permet de choisir la langue Whisper ; les performances doivent être mesurées par langue. | Biais des modèles préentraînés, erreurs de transcription, requêtes mal comprises, sous-représentation de certaines cultures, invisibilité accrue. | Jeu de test annoté FR / AR / tunisien ; taux d'erreur de mots et précision par langue ; correction humaine ; glossaire ; documenter les limites ; ne pas revendiquer la parité. |
-| **Transparence** | Statut `proposé`, indicateur `generated_by_ai`, score indicatif, versions des modèles dans l'index. Le README documente les limites. | Fausse confiance dans les scores, boîte noire, confusion entre similarité et probabilité, résultats non contestables. | Libellés explicites ; aucun score présenté comme une certitude ; journal des modèles ; documentation ; possibilité de rejeter ; interface de validation à venir. |
+| **Transparence** | Statut `proposé`, indicateur `generated_by_ai`, score indicatif, versions des modèles dans l'index. Le README documente les limites. | Fausse confiance dans les scores, boîte noire, confusion entre similarité et probabilité, résultats non contestables. | Libellés explicites ; aucun score présenté comme une certitude ; journal des modèles ; documentation ; possibilité de rejeter ; interface locale de validation. |
 | **Planète** | Pas de réentraînement ; modèles préentraînés ; inférence locale ; Whisper et OpenCLIP sur CUDA si disponible, CPU sinon. | Coût énergétique de l'inférence, renouvellement matériel, stockage des images et des représentations vectorielles, empreinte non mesurée. | Mesurer kWh par heure de vidéo ; traitement par lots ; modèles légers ; supprimer les images après revue ; documenter ; ne pas revendiquer de gain non mesuré. |
 
 ### Nos refus explicites
@@ -238,7 +238,7 @@ flowchart LR
 - La vidéo source n'est jamais modifiée.
 - L'index et les images clés sont des dérivés locaux, ignorés par Git.
 - Chaque scène porte le statut `proposé` et l'indicateur `generated_by_ai`.
-- La validation humaine est prévue dans le flux, mais son interface n'est pas encore implémentée.
+- La validation humaine est intégrée à l'interface locale : chaque scène proposée peut être validée ou rejetée, et la décision est horodatée dans l'index.
 
 <a id="statut-du-prototype"></a>
 ### Statut du prototype
@@ -252,7 +252,7 @@ flowchart LR
 | Représentations vectorielles visuelles | **Fonctionne** | OpenCLIP ViT-B-32 ; pertinence multilingue non mesurée. |
 | Recherche | **Fonctionne** | Similarité + mots-clés ; score indicatif, non calibré. |
 | Métadonnées de droits | **Déclaratif** | Arguments obligatoires dans la CLI ; aucune vérification juridique. |
-| Interface de validation | **Prototype local** | Interface NiceGUI de recherche et de revue ; chaque décision reste humaine. |
+| Interface locale (bibliothèque, recherche, revue) | **Prototype local** | Application NiceGUI : exploration des collections, recherche de scènes et validation/rejet ; chaque décision reste humaine. |
 | Reconnaissance optique de caractères (OCR) / identification des locuteurs | **Non fait** | Pas de texte incrusté ni de séparation des voix. |
 | Mesure énergétique | **Non fait** | Aucun relevé kWh. |
 | Reconnaissance faciale, émotions, identité | **Refusé** | Hors périmètre, par choix éthique. |
@@ -262,9 +262,9 @@ flowchart LR
 <details>
 <summary><strong>Note sur la capture de démonstration</strong></summary>
 
-La capture provient d'une exécution locale sur `test.mp4`, un extrait non versionné. Le dépôt publié contient la chaîne d'ingestion et de recherche en ligne de commande ; il ne contient ni le clip, ni une interface graphique. La présentation visuelle de la capture n'est donc pas garantie par le code versionné. Les résultats affichés ne constituent pas une mesure de qualité.
+La capture provient d'une exécution locale sur `test.mp4`, un extrait non versionné. Le dépôt publié contient la chaîne d'ingestion et de recherche en ligne de commande ainsi que l'interface locale NiceGUI ; il ne contient pas le clip. La présentation visuelle de la capture n'est donc pas garantie par le code versionné. Les résultats affichés ne constituent pas une mesure de qualité.
 
-**Ce qui est simulé ou maquetté :** aucun résultat n'est simulé. En revanche, l'interface de validation, la reconnaissance optique de caractères, la mesure énergétique et l'évaluation multilingue ne sont pas encore implémentées : ces briques sont documentées comme prévues.
+**Ce qui est simulé ou maquetté :** aucun résultat n'est simulé. En revanche, la reconnaissance optique de caractères, la mesure énergétique et l'évaluation multilingue ne sont pas encore implémentées : ces briques sont documentées comme prévues.
 
 </details>
 
@@ -507,7 +507,7 @@ Cette fiche ne remplace pas un avis juridique. Elle sert à rendre explicite ce 
 | Qualité multilingue non mesurée | Risque d'invisibilité pour le français, l'arabe et le tunisien | Jeu de test annoté, taux d'erreur de mots et précision par langue |
 | Scores non calibrés | Fausse confiance possible | Libellé indicatif, validation humaine, calibration |
 | Whisper sur CPU | Lenteur, hallucinations possibles | Utiliser CUDA si disponible ; sinon modèle `tiny` ou `base`, correction humaine |
-| Pas d'interface de validation | Corrections manuelles dans le JSON | Interface de revue |
+| Interface de validation récente | Peu éprouvée sur un usage réel, sans rôles ni journal complet | Tests avec des archivistes, rôles et journal des corrections |
 | Pas de contrôle d'accès | Index local non partagé | Chiffrement, authentification, politique de rétention |
 | Pas de mesure énergétique | Empreinte inconnue | Instrumentation kWh par vidéo |
 | Pas de vérification juridique | Droits déclarés, pas certifiés | Revue juridique, fiche de droits, retrait |
@@ -521,8 +521,8 @@ Cette fiche ne remplace pas un avis juridique. Elle sert à rendre explicite ce 
 
 | Horizon | Objectif | Livrable vérifiable | Statut |
 |---|---|---|---|
-| **Premier tour — 15 novembre 2026** | Documenter et prouver la faisabilité | README, GIF de démonstration, chaîne de traitement en ligne de commande | **Partiel** — documentation et démo prêtes ; preuve terrain en attente |
-| **Phase 2 — après le premier tour** | Construire la preuve terrain et la qualité | Cinq entretiens, corpus de test, mesures FR / AR / tunisien, interface de validation | À faire |
+| **Premier tour — 15 novembre 2026** | Documenter et prouver la faisabilité | README, GIF de démonstration, chaîne de traitement en ligne de commande et interface locale | **Partiel** — documentation, démo et interface prêtes ; preuve terrain en attente |
+| **Phase 2 — après le premier tour** | Construire la preuve terrain et la qualité | Cinq entretiens, corpus de test, mesures FR / AR / tunisien, tests de l'interface de validation | À faire |
 | **Pilote** | Tester avec une structure d'archives | Un archiviste référent, vingt requêtes réelles, journal de corrections | Prévu |
 | **Ouverture** | Rendre le prototype réutilisable | Documentation, licence, guide de déploiement, modèle économique | Prévu |
 
