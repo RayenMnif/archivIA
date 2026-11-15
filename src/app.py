@@ -2,6 +2,7 @@
 from __future__ import annotations
 import os, threading
 import base64
+from difflib import SequenceMatcher
 from pathlib import Path
 from datetime import datetime, timezone
 from nicegui import ui
@@ -316,6 +317,27 @@ def all_videos():return idx().get('videos',[])
 def all_scenes():return [s for v in all_videos() for s in v.get('scenes',[])]
 def scene_video(scene):
     return next((v for v in all_videos() if str(Path(v.get('path','')).resolve())==str(Path(scene.get('video_path','')).resolve())),{})
+def video_thumb(video):
+    """Return the first available scene thumbnail for a video."""
+    for scene in video.get('scenes',[]):
+        pic=thumb(scene)
+        if pic:return pic
+    return None
+def title_matches(video,query):
+    """Match a title exactly, by substring, or approximately to tolerate typos."""
+    query=' '.join(query.casefold().split())
+    if not query:return True
+    title=Path(video.get('path','')).name.casefold()
+    if query in title:return True
+    ratio=SequenceMatcher(None,query,title).ratio()
+    # Compare against title windows too, so a short query can match inside a long filename.
+    words=title.replace('_',' ').replace('-',' ').split()
+    candidates=words+[title]
+    for word in words:
+        if len(word)>=len(query):
+            candidates.extend(word[i:i+len(query)] for i in range(len(word)-len(query)+1))
+    ratio=max([ratio,*[SequenceMatcher(None,query,candidate).ratio() for candidate in candidates]])
+    return ratio>=0.62
 def filtered_rows():
     rows=state['rows'];group=state.get('collection_filter')
     if group:rows=[r for r in rows if video_group(scene_video(r['scene']))==group]
@@ -404,11 +426,20 @@ def dashboard_screen():
         with ui.row().classes('w-full items-center justify-between'):
             ui.label('Collections').classes('display text-xl font-bold')
             ui.button('Parcourir toutes',on_click=lambda:navigate('collections')).props('flat')
-        groups={}
-        for video in videos:groups.setdefault(video_group(video),[]).append(video)
-        if groups:
-            with ui.row().classes('w-full gap-4'):
-                for name,items in list(groups.items())[:4]:collection_card(name,items)
+        if videos:
+            with ui.column().classes('w-full gap-2'):
+                for video in videos:
+                    video_path=video.get('path','')
+                    relative=video.get('relative_path') or video_path
+                    pic=video_thumb(video)
+                    with ui.card().classes('card w-full p-3'):
+                        with ui.row().classes('w-full items-center gap-4'):
+                            if pic:ui.image(str(pic)).classes('w-32 h-[72px] object-cover rounded-lg shrink-0')
+                            else:ui.element('div').classes('thumb-placeholder w-32 h-[72px] rounded-lg shrink-0 flex items-center justify-center').props('aria-label="Aucune vignette disponible"')
+                            with ui.column().classes('flex-1 min-w-0 gap-1'):
+                                ui.label(Path(video_path).name or 'Vidéo').classes('font-semibold truncate')
+                                ui.label(relative).classes('muted text-sm truncate')
+                            ui.label(f"{len(video.get('scenes',[]))} scènes").classes('muted text-xs shrink-0')
         else:
             with ui.card().classes('card w-full p-8 items-center'):
                 ui.icon('video_library').classes('text-3xl text-neutral-500');ui.label('Aucune vidéo indexée pour le moment').classes('font-semibold mt-2');ui.label('Actualisez la bibliothèque pour découvrir les vidéos de ce dossier.').classes('muted text-sm')
@@ -435,22 +466,37 @@ def collections_screen():
         page_header('Collections','Toutes les vidéos indexées dans votre archive.',lambda:ui.button('Actualiser',on_click=refresh_library,icon='sync').props('outline'))
         if not videos:ui.label('Aucune vidéo indexée. Actualisez la bibliothèque ou choisissez un dossier.').classes('muted')
         else:
-            ui.label(f'{len(videos)} vidéos indexées').classes('muted text-sm')
-            with ui.column().classes('w-full gap-2'):
-                for video in videos:
-                    video_path=video.get('path','')
-                    relative=video.get('relative_path') or video_path
-                    missing=video.get('missing',False) or not Path(video_path).is_file()
-                    with ui.card().classes('card w-full p-4'):
-                        with ui.row().classes('w-full items-center gap-4'):
-                            ui.icon('movie').classes('text-2xl text-neutral-600')
-                            with ui.column().classes('flex-1 min-w-0 gap-1'):
-                                ui.label(Path(video_path).name or 'Vidéo').classes('font-semibold truncate')
-                                ui.label(relative).classes('muted text-xs break-all')
-                                label=f"{len(video.get('scenes',[]))} scènes"
-                                if missing:label+=' · fichier manquant'
-                                ui.label(label).classes('muted text-xs')
-                            ui.button('Désindexer',on_click=lambda video=video:confirm_unindex_video(video)).props('outline color=negative')
+            search=ui.input(placeholder='Rechercher une vidéo par titre…').props('outlined clearable').classes('w-full')
+            filtered={'videos':videos}
+            count_label=ui.label(f'{len(videos)} vidéos').classes('muted text-sm')
+            listing=ui.column().classes('w-full gap-2')
+            def show_videos():
+                filtered['videos']=[video for video in videos if title_matches(video,search.value or '')]
+                count_label.text=f"{len(filtered['videos'])} vidéo"+('' if len(filtered['videos'])==1 else 's')
+                listing.clear()
+                with listing:
+                    if not filtered['videos']:
+                        ui.label('Aucune vidéo ne correspond à ce titre.').classes('muted p-4')
+                    for video in filtered['videos']:
+                        render_collection_video(video)
+            search.on_value_change(lambda _:show_videos())
+            show_videos()
+def render_collection_video(video):
+    video_path=video.get('path','')
+    relative=video.get('relative_path') or video_path
+    missing=video.get('missing',False) or not Path(video_path).is_file()
+    pic=video_thumb(video)
+    with ui.card().classes('card w-full p-4'):
+        with ui.row().classes('w-full items-center gap-4'):
+            if pic:ui.image(str(pic)).classes('w-32 h-[72px] object-cover rounded-lg shrink-0')
+            else:ui.element('div').classes('thumb-placeholder w-32 h-[72px] rounded-lg shrink-0')
+            with ui.column().classes('flex-1 min-w-0 gap-1'):
+                ui.label(Path(video_path).name or 'Vidéo').classes('font-semibold truncate')
+                ui.label(relative).classes('muted text-xs break-all')
+                label=f"{len(video.get('scenes',[]))} scènes"
+                if missing:label+=' · fichier manquant'
+                ui.label(label).classes('muted text-xs')
+            ui.button('Désindexer',on_click=lambda video=video:confirm_unindex_video(video)).props('outline color=negative')
 def search_screen():
     data=idx();rows=filtered_rows()
     with ui.column().classes('w-full min-w-0 p-8 gap-5'):
