@@ -1,6 +1,6 @@
 """ArchivIA local desktop interface."""
 from __future__ import annotations
-import os, threading
+import os, threading, hashlib
 import base64
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -12,7 +12,7 @@ from ranking import rank_scenes
 from settings import load_settings, select_library, save_settings
 
 os.chdir(Path(__file__).resolve().parent.parent)
-IDX=Path('data/index.json'); settings=load_settings(); state={'screen':'library','root':None,'rows':[],'query':'','selected':None,'queue':[],'reconcile_issues':[],'model_error':None,'collection_filter':None}
+IDX=Path('data/index.json'); INDEX_DIR=Path('data/indexes'); settings=load_settings(); state={'screen':'library','root':None,'rows':[],'query':'','selected':None,'queue':[],'reconcile_issues':[],'model_error':None,'collection_filter':None}
 if settings.get('library_root'):
     try: state['root'],_=validate_library(settings['library_root']); state['screen']='dashboard'
     except ValueError as exc:
@@ -22,9 +22,29 @@ if settings.get('library_root'):
 ui.colors(primary='#171717',secondary='#737373',accent='#171717',positive='#171717',dark='#171717',info='#525252',warning='#525252',negative='#171717')
 ui.add_head_html('''<style>@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');:root{--ink:#171717;--muted:#737373;--line:#e5e5e5;--paper:#fafafa;--white:#fff}body{background:var(--paper);color:var(--ink);font-family:'DM Sans',Arial,sans-serif}.q-page{background:var(--paper)}.serif,.display{font-family:'Manrope','DM Sans',sans-serif;letter-spacing:-.035em}.muted{color:var(--muted)}.rail{background:#fff;border-right:1px solid var(--line)}.panel{background:#fff;border-left:1px solid var(--line)}.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 2px #00000005}.rowhover:hover,.navitem:hover{background:#f5f5f5}.chip{border:1px solid #d4d4d4;color:#404040;background:#fafafa;padding:3px 9px;font-size:11px;border-radius:999px}.scorebar{height:3px;background:#404040;border-radius:3px}.q-field--outlined .q-field__control:before{border-color:#d4d4d4}.q-field--outlined.q-field--focused .q-field__control:after{border-color:#171717}button:focus,input:focus{outline:2px solid #525252!important}.navactive{background:#f0f0f0!important;color:#111!important;font-weight:600}.timeline-track{height:6px;background:#e5e5e5;border-radius:8px;position:relative}.timeline-mark{position:absolute;top:-4px;width:3px;height:14px;background:#171717;border-radius:3px}.thumb-placeholder{background:#ececec}.q-btn{border-radius:10px;text-transform:none;font-weight:600}.q-card{box-shadow:none}.q-separator{background:var(--line)}.navitem{border-radius:10px;color:#525252}.navitem .q-btn__content{display:flex;justify-content:flex-start;gap:10px;width:100%}.navitem .q-icon{width:20px;min-width:20px;margin:0;justify-content:center}.kicker{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:#737373;font-weight:700}</style>''')
 LOGO_DATA = 'data:image/png;base64,' + base64.b64encode(Path('docs/logo.png').read_bytes()).decode('ascii')
+def index_path(root=None):
+    root=Path(root or state.get('root') or '').expanduser().resolve()
+    digest=hashlib.sha256(str(root).encode('utf-8')).hexdigest()
+    return INDEX_DIR/f'{digest}.json'
 def idx():
-    try:return read_index(IDX)
+    path=index_path()
+    try:
+        data=read_index(path)
+        if path.exists():state.pop('index_error',None);return data
+        # Preserve the former shared index while copying only this archive's entries.
+        legacy=read_index(IDX)
+        root=Path(state['root']).resolve()
+        videos=[]
+        for video in legacy.get('videos',[]):
+            try:Path(video.get('path','')).resolve().relative_to(root)
+            except (ValueError,OSError):continue
+            videos.append(video)
+        data['videos']=videos
+        write_index(path,data)
+        state.pop('index_error',None)
+        return data
     except Exception as e:state['index_error']=str(e);return {'schema_version':1,'videos':[]}
+def save_idx(data, root=None):write_index(index_path(root),data)
 def rel(path):
     try:return str(Path(path).resolve().relative_to(state['root']))
     except:return Path(path).name
@@ -66,7 +86,7 @@ def path_dialog():
             try:
                 root,files=validate_library(chosen);global settings;settings=select_library(settings,root);state.update(root=root,screen='dashboard')
                 if not files:ui.notify('Aucune vidéo prise en charge dans ce dossier.',type='warning')
-                d.close();refresh_results();refresh_library()
+                d.close();refresh_results();refresh_library(quiet=True)
             except Exception as e:ui.notify(str(e),type='negative')
         def browse(path):
             candidate=Path(path).expanduser()
@@ -116,7 +136,7 @@ def recent_dialog():
                         global settings
                         settings=select_library(settings,root)
                         state.update(root=root,screen='dashboard')
-                        d.close();refresh_results();refresh_library()
+                        d.close();refresh_results();refresh_library(quiet=True)
                     except Exception as e:ui.notify(str(e),type='negative')
                 ui.button('Choisir',on_click=choose).props('flat');ui.button('×',on_click=lambda item=item:remove_recent(item)).props('flat')
         ui.button('Fermer',on_click=d.close).props('flat')
@@ -189,37 +209,39 @@ def ingest(path,rights,entry=None):
     if entry is None:
         entry={'path':path,'stage':'En attente','error':None};state['queue'].append(entry)
     monitor_ingest([entry])
+    library_root=Path(state['root']).resolve()
     def worker():
         from ingest import ingest_video
         try:
-            records=ingest_video(path,rights,frames_dir=Path('data/frames'),library_root=state['root'],progress=lambda stage:update_ingest_progress(entry,stage));update_ingest_progress(entry,'Enregistrement');data=idx();st=path.stat()
+            records=ingest_video(path,rights,frames_dir=Path('data/frames'),library_root=library_root,progress=lambda stage:update_ingest_progress(entry,stage));update_ingest_progress(entry,'Enregistrement');data=read_index(index_path(library_root));st=path.stat()
             data['videos']=[v for v in data['videos'] if str(Path(v.get('path','')).resolve())!=str(path.resolve())]
             for s in records:s['rights_declared']=bool(rights)
-            data['videos'].append({'path':str(path.resolve()),'relative_path':str(path.relative_to(state['root'])),'size':st.st_size,'mtime':st.st_mtime,'rights':rights,'missing':False,'models':{'transcription':'openai/whisper-base','visual_embedding':'open_clip/ViT-B-32:laion2b_s34b_b79k'},'scenes':records});write_index(IDX,data);entry['stage']='Terminé'
+            data['videos'].append({'path':str(path.resolve()),'relative_path':str(path.relative_to(library_root)),'size':st.st_size,'mtime':st.st_mtime,'rights':rights,'missing':False,'models':{'transcription':'openai/whisper-base','visual_embedding':'open_clip/ViT-B-32:laion2b_s34b_b79k'},'scenes':records});save_idx(data,library_root);entry['stage']='Terminé'
         except Exception as e:entry.update(stage='Échec',error=str(e))
     threading.Thread(target=worker,daemon=True).start()
 
 def ingest_batch(entries,rights):
     monitor_ingest(entries)
+    library_root=Path(state['root']).resolve()
     def worker():
         from ingest import ingest_video
         for entry in entries:
             path=entry['path']
             try:
-                records=ingest_video(path,rights,frames_dir=Path('data/frames'),library_root=state['root'],progress=lambda stage,entry=entry:update_ingest_progress(entry,stage));update_ingest_progress(entry,'Enregistrement')
-                data=idx();st=path.stat()
+                records=ingest_video(path,rights,frames_dir=Path('data/frames'),library_root=library_root,progress=lambda stage,entry=entry:update_ingest_progress(entry,stage));update_ingest_progress(entry,'Enregistrement')
+                data=read_index(index_path(library_root));st=path.stat()
                 data['videos']=[v for v in data['videos'] if str(Path(v.get('path','')).resolve())!=str(path.resolve())]
                 for scene in records:scene['rights_declared']=bool(rights)
-                data['videos'].append({'path':str(path.resolve()),'relative_path':str(path.relative_to(state['root'])),'size':st.st_size,'mtime':st.st_mtime,'rights':rights,'missing':False,'models':{'transcription':'openai/whisper-base','visual_embedding':'open_clip/ViT-B-32:laion2b_s34b_b79k'},'scenes':records})
-                write_index(IDX,data);entry['stage']='Terminé'
+                data['videos'].append({'path':str(path.resolve()),'relative_path':str(path.relative_to(library_root)),'size':st.st_size,'mtime':st.st_mtime,'rights':rights,'missing':False,'models':{'transcription':'openai/whisper-base','visual_embedding':'open_clip/ViT-B-32:laion2b_s34b_b79k'},'scenes':records})
+                save_idx(data,library_root);entry['stage']='Terminé'
             except Exception as exc:entry.update(stage='Échec',error=str(exc))
     threading.Thread(target=worker,daemon=True).start()
-def refresh_library():
+def refresh_library(quiet=False):
     if state.get('index_error'):
         ui.notify('Index illisible : actualisation désactivée pour préserver le fichier.',type='negative')
         return
     data=idx();queue,missing=reconcile(state['root'],data)
-    if missing:write_index(IDX,data)
+    if missing:save_idx(data)
     indexed={str(Path(v.get('path','')).resolve()):v for v in data.get('videos',[]) if v.get('path')}
     issues=[{'video':video,'reason':'missing'} for video in missing]
     for path,reason in queue:
@@ -229,7 +251,7 @@ def refresh_library():
                 issues.append({'video':video,'reason':'changed'})
     state['reconcile_issues']=issues
     state['queue']=[{'path':p,'reason':reason,'stage':'Droits requis','error':None} for p,reason in queue]
-    if not queue:ui.notify('Index à jour : aucune nouvelle vidéo.')
+    if not queue and not quiet:ui.notify('Index à jour : aucune nouvelle vidéo.')
     render.refresh()
 
 def unindex_video(video_path):
@@ -246,7 +268,7 @@ def unindex_video(video_path):
     if len(data['videos'])==before:
         ui.notify('Cette vidéo n’est plus présente dans l’index.',type='warning')
     else:
-        write_index(IDX,data)
+        save_idx(data)
         frames_root=Path('data/frames').resolve()
         cleanup_errors=[]
         for video in removed:
@@ -288,14 +310,14 @@ def set_status(scene,status):
         for s in v.get('scenes',[]):
             if s.get('scene_id')==scene.get('scene_id') and s.get('video_path')==scene.get('video_path'):match=s;break
     if match is None:return
-    old={k:match.get(k) for k in ('status','reviewed_by','reviewed_at')};match.update(status=status,reviewed_by='archiviste',reviewed_at=datetime.now(timezone.utc).isoformat());scene['status']=status;write_index(IDX,data)
+    old={k:match.get(k) for k in ('status','reviewed_by','reviewed_at')};match.update(status=status,reviewed_by='archiviste',reviewed_at=datetime.now(timezone.utc).isoformat());scene['status']=status;save_idx(data)
     def undo():
         data=idx()
         for v in data['videos']:
             for s in v.get('scenes',[]):
                 if s.get('scene_id')==scene.get('scene_id') and s.get('video_path')==scene.get('video_path'):
                     for k,val in old.items():s.pop(k,None) if val is None else s.update({k:val})
-        scene['status']=old.get('status') or 'proposé';write_index(IDX,data);ui.notify('Décision annulée');render.refresh()
+        scene['status']=old.get('status') or 'proposé';save_idx(data);ui.notify('Décision annulée');render.refresh()
     state['undo']=undo
     ui.timer(5,expire_undo,once=True)
     ui.notify(f'{status}. L’annulation reste disponible dans le panneau pendant 5 s.',timeout=5000);render.refresh()
@@ -580,5 +602,5 @@ def keyboard(e):
 ui.keyboard(on_key=keyboard)
 if state['screen']!='library':refresh_results(refresh_ui=False)
 render()
-if state['screen']!='library':ui.timer(0.2,refresh_library,once=True)
+if state['screen']!='library':ui.timer(0.2,lambda:refresh_library(quiet=True),once=True)
 ui.run(host='127.0.0.1',port=8080,title='ArchivIA',reload=False,show=True)
