@@ -9,6 +9,7 @@ import shutil
 import hashlib
 
 import cv2
+import torch
 import whisper
 from scenedetect import ContentDetector, SceneManager, open_video
 
@@ -87,8 +88,11 @@ def ingest_video(video_path: Path, rights: dict, *, frames_dir: Path = Path("dat
             raise RuntimeError("La durée de la vidéo n'a pas pu être déterminée.")
         scenes = [(video.base_timecode, video.base_timecode + video.duration)]
     if progress: progress("Transcription")
-    transcriber = whisper.load_model(whisper_model, device="cpu")
-    transcription = transcriber.transcribe(str(video_path), language=language, fp16=False, verbose=False)
+    whisper_device = "cuda" if torch.cuda.is_available() else "cpu"
+    transcriber = whisper.load_model(whisper_model, device=whisper_device)
+    transcription = transcriber.transcribe(
+        str(video_path), language=language, fp16=whisper_device == "cuda", verbose=False
+    )
     transcript_segments = transcription.get("segments", [])
     if progress: progress("Images clés")
     relative = video_path.relative_to(library_root.resolve()) if library_root else Path(video_path.name)

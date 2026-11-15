@@ -30,7 +30,7 @@
 - Aucun test de qualité, de vitesse ou de précision n'a encore été consigné. La qualité du français, de l'arabe et du tunisien n'est donc pas mesurée.
 - Le modèle CLIP configuré utilise des poids LAION `ViT-B-32`; sa pertinence pour des requêtes françaises ou tunisiennes doit être évaluée, pas présumée.
 - Premier contrôle manuel rapporté par l'équipe : pour la requête « la Terre vue depuis l'espace » sur `test.mp4`, deux résultats affichés ont été vérifiés et jugés pertinents. Il s'agit d'un contrôle ponctuel, pas d'une mesure de précision ni d'un benchmark.
-- La transcription est faite sur le CPU et l'installation des modèles peut demander beaucoup de temps, d'espace disque et de mémoire. Les poids sont téléchargés par les bibliothèques au premier lancement, puis l'inférence se fait localement.
+- Whisper utilise CUDA si disponible et revient au CPU sinon. L'installation des modèles peut demander beaucoup de temps, d'espace disque et de mémoire. Les poids sont téléchargés par les bibliothèques au premier lancement, puis l'inférence se fait localement.
 - Pas encore d'interface de validation, d'OCR, de gestion multi-utilisateur ou de mesure d'empreinte énergétique.
 
 ## Sommaire
@@ -161,7 +161,7 @@ Le prototype est une interface en ligne de commande (CLI). Il ne modifie jamais 
 | Recherche textuelle | Similarité cosinus + recouvrement de mots (coefficient 0,05) | code du projet | Score indicatif | Ne pas lire comme une probabilité |
 | Index | JSON, `schema_version: 1` | code du projet | Scènes, droits, modèles | Réviser |
 
-**Aucun modèle n'est réentraîné.** Les poids sont téléchargés au premier lancement, puis l'inférence se fait localement. Whisper tourne sur CPU dans le prototype ; OpenCLIP utilise CUDA si disponible. Les versions sont épinglées dans `requirements.txt`.
+**Aucun modèle n'est réentraîné.** Les poids sont téléchargés au premier lancement, puis l'inférence se fait localement. Whisper et OpenCLIP utilisent CUDA si disponible, et reviennent au CPU sinon. Les versions sont épinglées dans `requirements.txt`.
 
 ### Où est l'innovation
 
@@ -191,7 +191,7 @@ Les six angles ci-dessous ne sont pas une liste de cases à cocher. Ils décrive
 | **Données** | Traitement local, pas de cloud ; index minimal ; pas de reconnaissance faciale ni d'inférence identitaire. Les images clés et l'index sont ignorés par Git. | Contenus sensibles, données personnelles, fuite de l'index, conservation trop longue, accès non autorisé. | Minimisation ; stockage local ; contrôle d'accès et chiffrement prévus ; purge ; pas d'upload ; journal d'accès. |
 | **Cultures et langues** | Ne pas supposer que le français, l'arabe et le tunisien fonctionnent aussi bien. Le prototype permet de choisir la langue Whisper ; les performances doivent être mesurées par langue. | Biais des modèles préentraînés, erreurs de transcription, requêtes mal comprises, sous-représentation de certaines cultures, invisibilité accrue. | Jeu de test annoté FR / AR / tunisien ; taux d'erreur de mots et précision par langue ; correction humaine ; glossaire ; documenter les limites ; ne pas revendiquer la parité. |
 | **Transparence** | Statut `proposé`, indicateur `generated_by_ai`, score indicatif, versions des modèles dans l'index. Le README documente les limites. | Fausse confiance dans les scores, boîte noire, confusion entre similarité et probabilité, résultats non contestables. | Libellés explicites ; aucun score présenté comme une certitude ; journal des modèles ; documentation ; possibilité de rejeter ; interface de validation à venir. |
-| **Planète** | Pas de réentraînement ; modèles préentraînés ; inférence locale ; Whisper sur CPU ; OpenCLIP sur GPU si disponible. | Coût énergétique de l'inférence, renouvellement matériel, stockage des images et des représentations vectorielles, empreinte non mesurée. | Mesurer kWh par heure de vidéo ; traitement par lots ; modèles légers ; supprimer les images après revue ; documenter ; ne pas revendiquer de gain non mesuré. |
+| **Planète** | Pas de réentraînement ; modèles préentraînés ; inférence locale ; Whisper et OpenCLIP sur CUDA si disponible, CPU sinon. | Coût énergétique de l'inférence, renouvellement matériel, stockage des images et des représentations vectorielles, empreinte non mesurée. | Mesurer kWh par heure de vidéo ; traitement par lots ; modèles légers ; supprimer les images après revue ; documenter ; ne pas revendiquer de gain non mesuré. |
 
 ### Nos refus explicites
 
@@ -222,7 +222,7 @@ Ces mécanismes ne sont pas encore implémentés. Ils sont des conditions de pas
 flowchart LR
   V["Vidéo source<br/>inchangée"] --> S["Détection de scènes<br/>PySceneDetect"]
   S --> K["Image clé<br/>1 par scène"]
-  V --> W["Transcription<br/>Whisper (CPU)"]
+  V --> W["Transcription<br/>Whisper (CUDA si disponible, sinon CPU)"]
   K --> C["Représentations vectorielles<br/>OpenCLIP ViT-B-32"]
   D["Droits déclarés<br/>titulaire · licence · usages"] --> J[("Index JSON local<br/>scènes · transcriptions · vecteurs · modèles")]
   K --> J
@@ -248,7 +248,7 @@ flowchart LR
 | Chaîne de traitement en ligne de commande | **Fonctionne** | Exécutée sur un extrait de test local : détection, transcription, représentations vectorielles et recherche. |
 | Détection de scènes | **Fonctionne** | PySceneDetect ; le réglage n'a pas été évalué. |
 | Extraction d'images clés | **Fonctionne** | Une image au milieu de chaque scène. |
-| Transcription | **Fonctionne** | Whisper `base` sur CPU ; qualité non mesurée. |
+| Transcription | **Fonctionne** | Whisper `base` sur CUDA si disponible, sinon CPU ; qualité non mesurée. |
 | Représentations vectorielles visuelles | **Fonctionne** | OpenCLIP ViT-B-32 ; pertinence multilingue non mesurée. |
 | Recherche | **Fonctionne** | Similarité + mots-clés ; score indicatif, non calibré. |
 | Métadonnées de droits | **Déclaratif** | Arguments obligatoires dans la CLI ; aucune vérification juridique. |
@@ -448,7 +448,7 @@ Le champ `embedding` (vecteur de 512 nombres) est omis pour la lisibilité ; l'i
 - **PowerShell bloque l'activation** : exécutez `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`, puis relancez `.\.venv\Scripts\Activate.ps1`.
 - **`python` introuvable sous Windows** : essayez `py -3 -m venv .venv` et `py -3 -m pip install -r requirements.txt`.
 - **Installation lente ou disque plein** : PyTorch et les poids peuvent représenter plusieurs Go. Libérez de l'espace avant de relancer.
-- **Transcription trop lente sur CPU** : utilisez `--whisper-model tiny` pour un premier essai.
+- **Transcription trop lente** : vérifiez que CUDA est disponible pour PyTorch ; sinon, utilisez `--whisper-model tiny` pour un premier essai sur CPU.
 - **Modèle CLIP à télécharger** : le premier lancement nécessite Internet ; les suivants peuvent fonctionner hors ligne si les poids sont en cache.
 - **Erreur `cv2`** : `python -m pip install opencv-python`.
 - **Aucun résultat** : vérifiez que `data/index.json` existe et contient des scènes.
@@ -506,7 +506,7 @@ Cette fiche ne remplace pas un avis juridique. Elle sert à rendre explicite ce 
 | Un seul extrait de test local | Pas de mesure de généralisation | Corpus documenté et autorisé |
 | Qualité multilingue non mesurée | Risque d'invisibilité pour le français, l'arabe et le tunisien | Jeu de test annoté, taux d'erreur de mots et précision par langue |
 | Scores non calibrés | Fausse confiance possible | Libellé indicatif, validation humaine, calibration |
-| Whisper sur CPU | Lenteur, hallucinations possibles | Modèle `tiny` ou `base`, correction humaine |
+| Whisper sur CPU | Lenteur, hallucinations possibles | Utiliser CUDA si disponible ; sinon modèle `tiny` ou `base`, correction humaine |
 | Pas d'interface de validation | Corrections manuelles dans le JSON | Interface de revue |
 | Pas de contrôle d'accès | Index local non partagé | Chiffrement, authentification, politique de rétention |
 | Pas de mesure énergétique | Empreinte inconnue | Instrumentation kWh par vidéo |
