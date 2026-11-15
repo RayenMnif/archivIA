@@ -24,8 +24,10 @@
 
 <p align="center"><em>Exemple de recherche sur un extrait de test local. Les scores sont indicatifs ; chaque résultat reste « proposé ».</em></p>
 
-> **Preuve terrain :** le problème est une **hypothèse de travail**, pas encore validée par des entretiens. La section 1 documente la méthode et l'espace réservé aux comptes rendus.
-=======
+> **Preuve terrain :** le contexte (archives audiovisuelles menacées et difficiles à traiter, y compris en Tunisie) est **étayé par des sources publiques et des déclarations de responsables d'archives** (section 1). En revanche, la difficulté précise de **repérage d'une séquence** reste une **hypothèse de travail, pas encore validée par des entretiens** menés par l'équipe.
+
+**Limites actuelles du prototype :**
+
 - Aucun clip autorisé n'est fourni dans le dépôt : l'équipe doit choisir un fichier dont elle peut justifier les droits et usages.
 - Aucun test de qualité, de vitesse ou de précision n'a encore été consigné. La qualité du français, de l'arabe et du tunisien n'est donc pas mesurée.
 - Le modèle CLIP configuré utilise des poids LAION `ViT-B-32`; sa pertinence pour des requêtes françaises ou tunisiennes doit être évaluée, pas présumée.
@@ -64,7 +66,42 @@
 
 > « Un archiviste ou un documentaliste audiovisuel rencontre un problème de repérage lorsqu'il doit retrouver une séquence précise dans un fonds peu documenté, ce qui entraîne un temps de visionnage important, des contenus culturels difficiles à réutiliser et un risque d'invisibilité de certaines œuvres. »
 
-**Statut de cette affirmation : hypothèse de travail, non encore validée sur le terrain.** Des demandes d'entretien ont été envoyées ; aucune réponse exploitable n'est encore disponible. Nous ne présentons donc pas cette phrase comme un constat établi.
+**Statut de cette affirmation : en partie étayée, en partie hypothèse.**
+
+- **Étayé par des sources publiques :** les archives audiovisuelles sont menacées (supports qui se dégradent, matériel de lecture qui disparaît) et les institutions, y compris en Tunisie, déclarent publiquement avoir du mal à les traiter. Voir « Témoignages et déclarations publiques » ci-dessous.
+- **Pas encore validé :** la difficulté précise de **retrouver une séquence** dans un fonds peu décrit. Des demandes d'entretien ont été envoyées ; aucune réponse exploitable n'est encore disponible. Nous ne présentons donc pas cette partie comme un constat établi.
+
+### Témoignages et déclarations publiques
+
+Ces éléments sont des **sources vérifiables** (déclarations publiques de responsables d'archives et comptes rendus publiés). **Ce ne sont pas des entretiens menés par notre équipe.** Chaque lien est consultable ; les faits sont reformulés, pas cités mot à mot.
+
+| Qui / source | Ce qui est rapporté | Date | Lien |
+|---|---|---|---|
+| **Hédi Jallab**, directeur général des Archives nationales de Tunisie (colloque « Patrimoine audiovisuel tunisien : une mémoire menacée, des défis et des stratégies de sauvegarde ») | De nombreux établissements publics rencontrent des difficultés pour traiter leurs archives audiovisuelles, en particulier pour les convertir au format numérique. Faute de laboratoires capables de restaurer bandes, vidéos et films en Tunisie, des coopérations ont été menées avec des laboratoires étrangers (Pologne, France, Italie). Les Archives nationales ont collecté auprès d'institutions publiques 4 504 CD, 9 032 cassettes vidéo, 9 507 cassettes audio et 73 films. | 30 oct. 2025 | [WMC / TAP](https://www.webmanagercenter.com/2025/10/30/554833/hedi-jallab-les-archives-nationales-oeuvrent-a-sauver-les-supports-audiovisuels-anciens/) |
+| **Hanen Ziada**, sous-directrice aux Archives nationales (même colloque) | Une grande quantité d'archives audiovisuelles conservées par les établissements publics est en mauvais état. Sur 27 départements ministériels, 20 ont répondu à la collecte. La présidence du gouvernement détient plus de 231 000 enregistrements vidéo, et la Radio tunisienne environ 200 000 enregistrements audio. | 30 oct. 2025 | [WMC / TAP](https://www.webmanagercenter.com/2025/10/30/554833/hedi-jallab-les-archives-nationales-oeuvrent-a-sauver-les-supports-audiovisuels-anciens/) |
+| **Fathi Mzah**, ingénieur de maintenance à la Télévision tunisienne (rapporté dans le compte rendu d'une formation de l'ASBU à Tunis, 19–23 mars 2018) | Il entretient d'anciennes machines de lecture devenues de plus en plus rares. Sans décision stratégique, il a pris l'initiative personnelle de transférer des contenus de l'U-Matic vers le Betacam SP pour en sauver le maximum. *Source secondaire : compte rendu publié par la HACA (Maroc).* | 3 avr. 2018 | [HACA](https://haca.ma/fr/print/4626) |
+| **Kaouthar Hamed**, documentaliste en chef à la Télévision tunisienne (même compte rendu) | Elle a présenté le rôle du documentaliste dans la gestion des actifs médias, l'importance de l'indexation et l'état des lieux des archives audiovisuelles en Tunisie. *Le compte rendu ne détaille pas ses constats.* | 3 avr. 2018 | [HACA](https://haca.ma/fr/print/4626) |
+| **Cinémathèque tunisienne / CNCI** | Une partie des archives cinématographiques et audiovisuelles nationales a été transférée vers la cinémathèque pour inventaire, traitement, restauration et numérisation. | 4–6 janv. 2024 | [WMC](https://www.webmanagercenter.com/2024/01/06/518798/numerisation-des-archives-cinematographiques-et-audiovisuelles-tunisiennes/) |
+
+### Contexte international
+
+| Source | Ce qu'elle documente | Lien |
+|---|---|---|
+| **UNESCO / IASA, *Magnetic Tape Alert Project*** | Les formats de bandes magnétiques sont obsolètes ; les pièces détachées et le matériel de lecture disparaissent ; le transfert de routine des documents sur bande devait cesser vers 2025. La numérisation et le transfert vers des dépôts numériques sûrs sont présentés comme le seul moyen de préservation à long terme. | [IASA](https://iasa-web.org/node/5374) |
+| **UNESCO, Journée mondiale du patrimoine audiovisuel 2015** (message d'Irina Bokova, alors directrice générale) | Une grande part du patrimoine audiovisuel mondial est déjà perdue ; il restait alors 10 à 15 ans pour transférer les enregistrements disponibles sur support numérique. | [ONU Info](https://news.un.org/en/story/2015/10/513792-audiovisual-heritage-day-unesco-appeals-safeguarding-worlds-endangered-archives) |
+
+### Ce que ces sources établissent, et ce qu'elles n'établissent pas
+
+| Affirmation | Preuve disponible |
+|---|---|
+| Les archives audiovisuelles se dégradent et sont menacées | **Oui**, sources institutionnelles (UNESCO, IASA, Archives nationales de Tunisie) |
+| Les institutions tunisiennes peinent à traiter leurs archives | **Oui**, déclarations publiques datées d'octobre 2025 |
+| L'indexation est un enjeu reconnu par les professionnels | **Partielle**, une mention dans un compte rendu de 2018 |
+| Retrouver une séquence précise coûte beaucoup de temps | **Non démontré**, hypothèse centrale à tester |
+
+### Pourquoi indexer, alors que la priorité actuelle semble être la numérisation ?
+
+Les sources tunisiennes ci-dessus portent surtout sur la **numérisation et la restauration**, pas sur la recherche. Notre raisonnement (une **hypothèse**, pas un fait sourcé) est le suivant : une fois un fonds numérisé, les fichiers restent difficiles à exploiter s'ils ne sont pas décrits. ArchivIA se place **après** la numérisation, comme une aide à la description et à la consultation. Cette hypothèse sera testée auprès des archivistes lors des entretiens.
 
 ### Pourquoi cette hypothèse est crédible
 
@@ -78,10 +115,10 @@ L'IA ne supprime pas ce travail. Elle peut réduire la distance entre une questi
 |---|---|---|---|
 | **Entretiens semi-directifs** | Demandes envoyées à des professionnels des archives et de l'audiovisuel. | En attente | Comptes rendus datés, rôles, citations autorisées. |
 | **Observation d'une tâche réelle** | Protocole prêt : chronométrer une recherche de séquence, noter les étapes et les contournements. | À planifier | Accord de la structure, grille d'observation. |
-| **Veille documentaire** | Cadres internationaux de l'UNESCO et du Conseil international des archives sur la préservation et l'accès au patrimoine documentaire. | Amorcé | Sources locales, rapports d'archives, données tunisiennes. |
+| **Veille documentaire** | Cadres internationaux de l'UNESCO et du Conseil international des archives ; déclarations publiques des Archives nationales de Tunisie (octobre 2025) ; compte rendu d'une formation à Tunis (2018) ; projet UNESCO/IASA sur les bandes magnétiques. | Fait (première passe) | Rapports de l'INA, de la Télévision tunisienne et de la Cinémathèque ; données chiffrées sur la recherche et l'indexation. |
 | **Test technique** | Chaîne de traitement exécutée de bout en bout sur un extrait local. | Fait | Corpus de test documenté et droits vérifiés. |
 
-**Notre règle de preuve :** nous ne présenterons le problème comme validé que si au moins deux professionnels indépendants décrivent la même difficulté et si nous pouvons documenter un cas concret — temps passé, contournement utilisé, contenu resté introuvable. Les notes seront publiées avec l'accord des personnes, ou anonymisées.
+**Notre règle de preuve :** nous ne présenterons le problème de repérage comme validé que si au moins deux professionnels indépendants décrivent la même difficulté et si nous pouvons documenter un cas concret — temps passé, contournement utilisé, contenu resté introuvable. Les notes seront publiées avec l'accord des personnes, ou anonymisées.
 
 <details>
 <summary><strong>Journal de terrain — modèle à remplir après les entretiens</strong></summary>
@@ -104,15 +141,16 @@ Aucun entretien exploitable à ce jour. Le tableau ci-dessous ne contient aucun 
 
 </details>
 
-### Sources publiques
+### Sources publiques (cadres de référence)
 
 | Source | Ce qu'elle documente | Lien |
 |---|---|---|
 | UNESCO, *Recommandation concernant la préservation et l'accessibilité du patrimoine documentaire, y compris le patrimoine numérique* (17 novembre 2015), qui cite la Recommandation de 1980 sur les images en mouvement | Cadre international pour la préservation et l'accès ; appelle notamment à des « catalogues et aides à la recherche exacts et mis à jour » (section 3.2). | [Texte officiel](https://www.unesco.org/fr/legal-affairs/recommendation-concerning-preservation-and-access-documentary-heritage-including-digital-form) |
 | Conseil international des archives, *Déclaration universelle sur les archives* (2011), adoptée par l'UNESCO | Affirme que les archives garantissent les droits, constituent une mémoire collective et soutiennent la transparence des institutions. | [Présentation officielle](https://www.ica.org/en/universal-declaration-on-archives) |
-| **À compléter** | Rapports de l'INA, politiques de numérisation, Archives nationales de Tunisie, enquêtes de terrain. | — |
+| Archives nationales de Tunisie, colloque d'octobre 2025 | Voir le tableau « Témoignages et déclarations publiques » ci-dessus. | [WMC / TAP](https://www.webmanagercenter.com/2025/10/30/554833/hedi-jallab-les-archives-nationales-oeuvrent-a-sauver-les-supports-audiovisuels-anciens/) |
+| **À compléter** | Rapports de l'INA, politiques de numérisation de la Télévision tunisienne et de la Cinémathèque, enquêtes de terrain. | — |
 
-> **Attention :** une source publique documente un enjeu général ; elle ne remplace pas un entretien. Nous ne l'utilisons pas pour prétendre que notre problème précis est confirmé.
+> **Attention :** une source publique documente un enjeu général ; elle ne remplace pas un entretien. Nous ne l'utilisons pas pour prétendre que notre problème précis de repérage est confirmé.
 
 ---
 
@@ -502,7 +540,7 @@ Cette fiche ne remplace pas un avis juridique. Elle sert à rendre explicite ce 
 
 | Limite | Impact | Prochaine action |
 |---|---|---|
-| Pas de validation terrain | Le problème reste une hypothèse | Cinq entretiens, une observation, des notes avec accord |
+| Pas d'entretien mené par l'équipe sur le repérage de séquences | La difficulté précise reste une hypothèse (le contexte, lui, est sourcé) | Cinq entretiens, une observation, des notes avec accord |
 | Un seul extrait de test local | Pas de mesure de généralisation | Corpus documenté et autorisé |
 | Qualité multilingue non mesurée | Risque d'invisibilité pour le français, l'arabe et le tunisien | Jeu de test annoté, taux d'erreur de mots et précision par langue |
 | Scores non calibrés | Fausse confiance possible | Libellé indicatif, validation humaine, calibration |
@@ -511,8 +549,9 @@ Cette fiche ne remplace pas un avis juridique. Elle sert à rendre explicite ce 
 | Pas de contrôle d'accès | Index local non partagé | Chiffrement, authentification, politique de rétention |
 | Pas de mesure énergétique | Empreinte inconnue | Instrumentation kWh par vidéo |
 | Pas de vérification juridique | Droits déclarés, pas certifiés | Revue juridique, fiche de droits, retrait |
+| Sources tunisiennes centrées sur la numérisation | Le besoin d'indexation après numérisation n'est pas démontré | Tester l'hypothèse auprès d'archivistes |
 
-> **Ce que nous ne prétendons pas :** avoir validé le problème sur le terrain, avoir mesuré la qualité du prototype, avoir vérifié les droits automatiquement, ou être prêts pour la production. ArchivIA est un prototype de hackathon, pas un service d'archives.
+> **Ce que nous ne prétendons pas :** avoir validé sur le terrain la difficulté de repérage, avoir mesuré la qualité du prototype, avoir vérifié les droits automatiquement, ou être prêts pour la production. ArchivIA est un prototype de hackathon, pas un service d'archives.
 
 ---
 
@@ -521,7 +560,7 @@ Cette fiche ne remplace pas un avis juridique. Elle sert à rendre explicite ce 
 
 | Horizon | Objectif | Livrable vérifiable | Statut |
 |---|---|---|---|
-| **Premier tour — 15 novembre 2026** | Documenter et prouver la faisabilité | README, GIF de démonstration, chaîne de traitement en ligne de commande et interface locale | **Partiel** — documentation, démo et interface prêtes ; preuve terrain en attente |
+| **Premier tour — 15 novembre 2026** | Documenter et prouver la faisabilité | README, GIF de démonstration, chaîne de traitement en ligne de commande et interface locale | **Partiel** — documentation, démo, interface et sources publiques prêtes ; entretiens en attente |
 | **Phase 2 — après le premier tour** | Construire la preuve terrain et la qualité | Cinq entretiens, corpus de test, mesures FR / AR / tunisien, tests de l'interface de validation | À faire |
 | **Pilote** | Tester avec une structure d'archives | Un archiviste référent, vingt requêtes réelles, journal de corrections | Prévu |
 | **Ouverture** | Rendre le prototype réutilisable | Documentation, licence, guide de déploiement, modèle économique | Prévu |
