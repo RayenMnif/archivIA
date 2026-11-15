@@ -6,5 +6,7 @@ __pycache__/
 data/clips/**
 !data/clips/.gitkeep
 data/index.json
+data/indexes/*
+!data/indexes/.gitkeep
 data/settings.json
 data/frames/
