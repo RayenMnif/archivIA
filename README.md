@@ -340,6 +340,16 @@ python src/app.py
 
 Elle écoute sur `http://127.0.0.1:8080`. L’interface est un prototype local : elle conserve un seul chemin de bibliothèque dans `data/settings.json` sur le disque et écrit les scènes, décisions et représentations dans l’index JSON local. Les résultats restent des propositions à examiner par une personne.
 
+#### Utiliser l’interface
+
+1. Lancez la commande depuis la racine du dépôt, après avoir installé les dépendances. NiceGUI ouvre l’interface dans votre navigateur ; si elle ne s’ouvre pas automatiquement, visitez `http://127.0.0.1:8080`.
+2. Sur l’écran d’accueil, choisissez **Ouvrir un dossier** et sélectionnez un dossier contenant vos vidéos. Les fichiers vidéo restent à leur emplacement. Le chemin de cette bibliothèque est mémorisé localement pour les prochains lancements.
+3. Dans la bibliothèque, actualisez si nécessaire pour détecter les vidéos. Pour chaque nouvelle vidéo, renseignez le titulaire des droits, la licence ou le statut et les usages autorisés avant de lancer l’indexation. Si ces informations ne sont pas disponibles, vous pouvez choisir **Indexer sans droits déclarés** ; l’interface indiquera alors que les droits ne sont pas déclarés. L’indexation peut prendre du temps, surtout au premier lancement pendant le téléchargement des modèles.
+4. Ouvrez **Recherche de scènes**, saisissez une description en langage naturel (par exemple « une scène de marché »), puis cliquez sur **Rechercher**. Sélectionnez une vignette pour examiner l’image, la transcription, l’horodatage et les droits déclarés.
+5. Pour chaque scène, choisissez **Valider** ou **Rejeter** après examen. Ces décisions sont enregistrées dans l’index local et peuvent être annulées avec **Annuler la dernière décision**. Les scores sont indicatifs ; ils ne prouvent ni la pertinence d’une scène ni les droits de réutilisation.
+
+Laissez le terminal ouvert pendant l’utilisation de l’interface. Pour arrêter le serveur, revenez au terminal et appuyez sur `Ctrl+C`.
+
 Écrans de référence pour les deux vues :
 
 | Bibliothèque | Recherche |
