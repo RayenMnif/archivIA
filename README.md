@@ -16,7 +16,7 @@
 
 ---
 
-**ArchivIA** indexe localement des archives audiovisuelles et permet de retrouver une scène à partir d'une requête en langage naturel, sans jamais remplacer la décision de l'archiviste.
+**ArchivIA** vous aide à retrouver une scène dans une vidéo en décrivant ce que vous cherchez, avec vos propres mots. Les fichiers restent sur votre ordinateur et chaque résultat est une suggestion à vérifier par un archiviste.
 
 <p align="center">
   <img src="docs/demo.gif" alt="Démonstration d'ArchivIA : recherche « la Terre vue depuis l'espace » et résultats horodatés avec scores indicatifs" width="820">
@@ -26,7 +26,7 @@
 
 > **Preuve terrain :** le contexte (archives audiovisuelles menacées et difficiles à traiter, y compris en Tunisie) est **étayé par des sources publiques et des déclarations de responsables d'archives** (section 1). En revanche, la difficulté précise de **repérage d'une séquence** reste une **hypothèse de travail, pas encore validée par des entretiens** menés par l'équipe.
 
-**Limites actuelles du prototype :**
+**À savoir avant de commencer :**
 
 - Aucun clip autorisé n'est fourni dans le dépôt : l'équipe doit choisir un fichier dont elle peut justifier les droits et usages.
 - Aucun test de qualité, de vitesse ou de précision n'a encore été consigné. La qualité du français, de l'arabe et du tunisien n'est donc pas mesurée.
@@ -35,18 +35,18 @@
 - Whisper utilise CUDA si disponible et revient au CPU sinon. L'installation des modèles peut demander beaucoup de temps, d'espace disque et de mémoire. Les poids sont téléchargés par les bibliothèques au premier lancement, puis l'inférence se fait localement.
 - Interface locale de recherche et de validation livrée ; pas encore d'OCR, de gestion multi-utilisateur ni de mesure d'empreinte énergétique.
 
-## Sommaire
+## 🧭 Sommaire
 
-- [1. Le problème détecté](#probleme)
-- [2. Innovation et place de l'IA](#ia)
-- [3. Démarche éthique à 360°](#ethique)
-- [4. Faisabilité](#faisabilite)
+- [1. Le problème que nous cherchons à résoudre](#probleme)
+- [2. L'innovation et le rôle de l'IA](#ia)
+- [3. Notre démarche éthique à 360°](#ethique)
+- [4. Faisabilité et prise en main](#faisabilite)
 - [5. Feuille de route](#feuille-de-route)
-- [6. Modèle économique — Business Model Canvas](#modele-economique)
+- [6. Modèle économique](#modele-economique)
 - [7. Contribuer](#contribuer)
 - [8. Licence](#licence)
 
-## En bref
+## ✨ ArchivIA en bref
 
 | Point clé | Résumé |
 |---|---|
@@ -60,7 +60,7 @@
 ---
 
 <a id="probleme"></a>
-## 1. Le problème détecté
+## 1. 🔎 Le problème que nous cherchons à résoudre
 
 > **Critère 1 · Pertinence du problème détecté (30 %)**
 
@@ -71,7 +71,7 @@
 - **Étayé par des sources publiques :** les archives audiovisuelles sont menacées (supports qui se dégradent, matériel de lecture qui disparaît) et les institutions, y compris en Tunisie, déclarent publiquement avoir du mal à les traiter. Voir « Témoignages et déclarations publiques » ci-dessous.
 - **Pas encore validé :** la difficulté précise de **retrouver une séquence** dans un fonds peu décrit. Des demandes d'entretien ont été envoyées ; aucune réponse exploitable n'est encore disponible. Nous ne présentons donc pas cette partie comme un constat établi.
 
-### Témoignages et déclarations publiques
+### 🗣️ Témoignages et déclarations publiques
 
 Ces éléments sont des **sources vérifiables** (déclarations publiques de responsables d'archives et comptes rendus publiés). **Ce ne sont pas des entretiens menés par notre équipe.** Chaque lien est consultable ; les faits sont reformulés, pas cités mot à mot.
 
@@ -83,14 +83,14 @@ Ces éléments sont des **sources vérifiables** (déclarations publiques de res
 | **Kaouthar Hamed**, documentaliste en chef à la Télévision tunisienne (même compte rendu) | Elle a présenté le rôle du documentaliste dans la gestion des actifs médias, l'importance de l'indexation et l'état des lieux des archives audiovisuelles en Tunisie. *Le compte rendu ne détaille pas ses constats.* | 3 avr. 2018 | [HACA](https://haca.ma/fr/print/4626) |
 | **Cinémathèque tunisienne / CNCI** | Une partie des archives cinématographiques et audiovisuelles nationales a été transférée vers la cinémathèque pour inventaire, traitement, restauration et numérisation. | 4–6 janv. 2024 | [WMC](https://www.webmanagercenter.com/2024/01/06/518798/numerisation-des-archives-cinematographiques-et-audiovisuelles-tunisiennes/) |
 
-### Contexte international
+### 🌍 Contexte international
 
 | Source | Ce qu'elle documente | Lien |
 |---|---|---|
 | **UNESCO / IASA, *Magnetic Tape Alert Project*** | Les formats de bandes magnétiques sont obsolètes ; les pièces détachées et le matériel de lecture disparaissent ; le transfert de routine des documents sur bande devait cesser vers 2025. La numérisation et le transfert vers des dépôts numériques sûrs sont présentés comme le seul moyen de préservation à long terme. | [IASA](https://iasa-web.org/node/5374) |
 | **UNESCO, Journée mondiale du patrimoine audiovisuel 2015** (message d'Irina Bokova, alors directrice générale) | Une grande part du patrimoine audiovisuel mondial est déjà perdue ; il restait alors 10 à 15 ans pour transférer les enregistrements disponibles sur support numérique. | [ONU Info](https://news.un.org/en/story/2015/10/513792-audiovisual-heritage-day-unesco-appeals-safeguarding-worlds-endangered-archives) |
 
-### Ce que ces sources établissent, et ce qu'elles n'établissent pas
+### ✅ Ce que les sources confirment — et ce qu'il reste à vérifier
 
 | Affirmation | Preuve disponible |
 |---|---|
@@ -99,17 +99,17 @@ Ces éléments sont des **sources vérifiables** (déclarations publiques de res
 | L'indexation est un enjeu reconnu par les professionnels | **Partielle**, une mention dans un compte rendu de 2018 |
 | Retrouver une séquence précise coûte beaucoup de temps | **Non démontré**, hypothèse centrale à tester |
 
-### Pourquoi indexer, alors que la priorité actuelle semble être la numérisation ?
+### Pourquoi indexer après la numérisation ?
 
 Les sources tunisiennes ci-dessus portent surtout sur la **numérisation et la restauration**, pas sur la recherche. Notre raisonnement (une **hypothèse**, pas un fait sourcé) est le suivant : une fois un fonds numérisé, les fichiers restent difficiles à exploiter s'ils ne sont pas décrits. ArchivIA se place **après** la numérisation, comme une aide à la description et à la consultation. Cette hypothèse sera testée auprès des archivistes lors des entretiens.
 
-### Pourquoi cette hypothèse est crédible
+### 💡 Pourquoi cette hypothèse mérite d'être testée
 
 Une archive audiovisuelle n'est pas seulement un fichier : c'est un document avec un contexte, des ayants droit et des usages prévus. Quand les métadonnées s'arrêtent au niveau du fonds ou de l'émission, retrouver « la scène où… » suppose de parcourir la vidéo, de reconnaître les plans et de reconstituer mentalement le récit. Ce travail peut être coûteux, difficile à mutualiser et dépendre fortement de la mémoire des personnes qui connaissent le fonds.
 
 L'IA ne supprime pas ce travail. Elle peut réduire la distance entre une question formulée en mots et un signal visuel ou sonore qui n'a jamais été décrit. C'est là que se situe notre contribution : un index intermédiaire, proposé par la machine, validé par l'humain.
 
-### Comment nous l'avons détecté — et ce qui reste à prouver
+### 🧪 Notre démarche et les prochaines preuves à réunir
 
 | Méthode | Ce que nous avons fait | Statut | Ce qui manque |
 |---|---|---|---|
@@ -155,11 +155,11 @@ Aucun entretien exploitable à ce jour. Le tableau ci-dessous ne contient aucun 
 ---
 
 <a id="ia"></a>
-## 2. Innovation et place de l'IA
+## 2. 🤖 L'innovation et le rôle de l'IA
 
 > **Critère 2 · Innovation et place de l'IA (25 %)**
 
-### Ce que fait ArchivIA
+### ⚙️ Comment fonctionne ArchivIA
 
 | Étape | Entrée | Traitement | Sortie |
 |---|---|---|---|
@@ -169,14 +169,14 @@ Aucun entretien exploitable à ce jour. Le tableau ci-dessous ne contient aucun 
 
 Le prototype se compose d'une interface locale (NiceGUI) et d'outils en ligne de commande. Il ne modifie jamais la vidéo source : il lit, extrait et écrit un index dérivé. Les images clés et l'index restent sur la machine.
 
-### Pourquoi l'IA est nécessaire
+### Pourquoi l'IA peut aider
 
 - **Le signal à interroger est visuel et sonore**, pas seulement textuel. Le contenu n'est pas toujours décrit plan par plan.
 - **Décrire chaque plan à la main est coûteux et ne passe pas à l'échelle**, surtout pour des fonds anciens ou faiblement dotés.
 - **Un modèle multimodal peut relier une requête en français à des images jamais annotées**, et un modèle de transcription peut rendre la parole cherchable sans écoute intégrale.
 - **L'IA n'est nécessaire que pour proposer des candidats**, pas pour décider de leur valeur documentaire.
 
-### Ce que l'IA fait — et ce qu'elle ne fait pas
+### Ce que l'IA fait, et ses limites
 
 | L'IA fait | L'IA ne fait pas |
 |---|---|
@@ -189,7 +189,7 @@ Le prototype se compose d'une interface locale (NiceGUI) et d'outils en ligne de
 | — | Reconnaître les visages, les émotions, l'origine, la religion ou l'identité |
 | — | Vérifier les droits automatiquement |
 
-### Modèles et outils
+### 🧰 Modèles et outils
 
 | Étape | Outil / modèle | Version | Sortie | Contrôle humain |
 |---|---|---|---|---|
@@ -201,7 +201,7 @@ Le prototype se compose d'une interface locale (NiceGUI) et d'outils en ligne de
 
 **Aucun modèle n'est réentraîné.** Les poids sont téléchargés au premier lancement, puis l'inférence se fait localement. Whisper et OpenCLIP utilisent CUDA si disponible, et reviennent au CPU sinon. Les versions sont épinglées dans `requirements.txt`.
 
-### Où est l'innovation
+### 💡 Où se trouve l'innovation
 
 L'innovation n'est pas dans un nouveau modèle. Elle est dans l'assemblage : une chaîne de traitement locale, reproductible et traçable, qui traite la vidéo, l'audio et les droits dans un même index, et qui refuse de transformer une similarité en décision. Le résultat est un outil d'aide à la consultation, pas un moteur de publication.
 
@@ -210,17 +210,17 @@ Le prototype est volontairement petit et lisible : pas de réentraînement, pas 
 ---
 
 <a id="ethique"></a>
-## 3. Démarche éthique à 360°
+## 3. 🧭 Notre démarche éthique à 360°
 
 > **Critère 3 · Démarche éthique à 360° (25 %)**
 
-### Notre boussole
+### 🧭 Nos principes
 
 ArchivIA part d'une règle simple : **indexer n'est pas réécrire**. Le système peut proposer des scènes, des transcriptions et des similarités ; il ne peut ni déclarer une œuvre libre, ni décider qu'une interprétation est correcte, ni publier à la place d'un professionnel.
 
 Les six angles ci-dessous ne sont pas une liste de cases à cocher. Ils décrivent des tensions réelles et les garde-fous que nous pouvons tenir — ou que nous devons encore construire.
 
-### Les six angles
+### Les six angles étudiés
 
 | Angle | Notre approche | Risque | Mitigation |
 |---|---|---|---|
@@ -231,7 +231,7 @@ Les six angles ci-dessous ne sont pas une liste de cases à cocher. Ils décrive
 | **Transparence** | Statut `proposé`, indicateur `generated_by_ai`, score indicatif, versions des modèles dans l'index. Le README documente les limites. | Fausse confiance dans les scores, boîte noire, confusion entre similarité et probabilité, résultats non contestables. | Libellés explicites ; aucun score présenté comme une certitude ; journal des modèles ; documentation ; possibilité de rejeter ; interface locale de validation. |
 | **Planète** | Pas de réentraînement ; modèles préentraînés ; inférence locale ; Whisper et OpenCLIP sur CUDA si disponible, CPU sinon. | Coût énergétique de l'inférence, renouvellement matériel, stockage des images et des représentations vectorielles, empreinte non mesurée. | Mesurer kWh par heure de vidéo ; traitement par lots ; modèles légers ; supprimer les images après revue ; documenter ; ne pas revendiquer de gain non mesuré. |
 
-### Nos refus explicites
+### 🚫 Ce que nous refusons
 
 - Pas de reconnaissance faciale, de détection d'émotions, ni d'inférence d'origine, de religion, d'orientation ou d'identité.
 - Pas de génération, de modification ou de remontage de la vidéo source.
@@ -240,7 +240,7 @@ Les six angles ci-dessous ne sont pas une liste de cases à cocher. Ils décrive
 - Pas de collecte de données personnelles auprès des personnes interviewées sans leur accord.
 - Pas de revendication de gain environnemental non mesuré.
 
-### Gouvernance, recours et limites
+### 👥 Décisions, recours et limites
 
 À ce stade, l'équipe assure la revue. Pour un pilote, nous prévoyons trois rôles : un référent archiviste, un référent droits et un référent technique. Toute correction devra être tracée. Une personne doit pouvoir contester un résultat et obtenir une explication sur le modèle et la version utilisés.
 
@@ -249,12 +249,12 @@ Ces mécanismes ne sont pas encore implémentés. Ils sont des conditions de pas
 ---
 
 <a id="faisabilite"></a>
-## 4. Faisabilité
+## 4. 🛠️ Faisabilité et prise en main
 
 > **Critère 4 · Faisabilité (20 %)**
 
 <a id="architecture-technique"></a>
-### Architecture technique
+### 🧩 Architecture technique
 
 ```mermaid
 flowchart LR
@@ -279,7 +279,7 @@ flowchart LR
 - La validation humaine est intégrée à l'interface locale : chaque scène proposée peut être validée ou rejetée, et la décision est horodatée dans l'index.
 
 <a id="statut-du-prototype"></a>
-### Statut du prototype
+### 📍 Où en est le prototype ?
 
 | Élément | Statut | Ce que cela signifie |
 |---|---|---|
@@ -306,7 +306,7 @@ La capture provient d'une exécution locale sur `test.mp4`, un extrait non versi
 
 </details>
 
-### Ce que nous mesurerons
+### 📏 Ce que nous voulons mesurer
 
 | Indicateur | Pourquoi | Statut |
 |---|---|---|
@@ -316,7 +316,7 @@ La capture provient d'une exécution locale sur `test.mp4`, un extrait non versi
 | Taux de correction par un archiviste | Effort humain réel | À mesurer |
 | kWh par heure de vidéo | Empreinte énergétique | À mesurer |
 
-### Pile technique
+### 🧰 Technologies utilisées
 
 | Couche | Technologie | Version / note |
 |---|---|---|
@@ -330,7 +330,7 @@ La capture provient d'une exécution locale sur `test.mp4`, un extrait non versi
 | Interface | NiceGUI | Interface locale, ouverte sur `127.0.0.1:8080` |
 | Licence | MIT | voir [`LICENSE`](LICENSE) |
 
-## Interface
+## 🖥️ Utiliser l'interface
 
 L’interface desktop locale se lance avec :
 
@@ -341,7 +341,7 @@ python src/app.py
 Elle écoute sur `http://127.0.0.1:8080`. L’interface est un prototype local : elle conserve un seul chemin de bibliothèque dans `data/settings.json` sur le disque et écrit les scènes, décisions et représentations dans l’index JSON local. Les résultats restent des propositions à examiner par une personne.
 Laissez le terminal ouvert pendant l’utilisation de l’interface. Pour arrêter le serveur, revenez au terminal et appuyez sur `Ctrl+C`.
 
-### Installation
+### 📦 Installation
 
 **Prérequis :** Python 3.10+, `git`, `ffmpeg` accessible dans le `PATH`, et une connexion Internet lors de l'installation et du premier téléchargement des poids. Prévoir plusieurs Go d'espace disque pour PyTorch et les modèles.
 
@@ -403,7 +403,7 @@ python -m pip install -r requirements.txt
 python -c "import torch, whisper, open_clip, cv2, scenedetect; print('Dépendances OK')"
 ```
 
-### Première indexation
+### 🎬 Indexer une première vidéo
 
 Placez un extrait dont vous pouvez justifier les droits dans `data/clips/`. Ce dossier est ignoré par Git ; aucun clip n'est fourni avec le dépôt.
 
@@ -432,7 +432,7 @@ Transcription : « … »
 > **Avant d'indexer :** une incertitude sur les droits doit être signalée explicitement. Ne présentez jamais un fichier comme libre de droits sans vérification. L'index ne constitue pas une autorisation d'usage.
 
 <details>
-<summary><strong>Structure de l'index JSON (exemple simplifié)</strong></summary>
+<summary><strong>🔍 Voir un exemple simplifié de l'index JSON</strong></summary>
 
 ```json
 {
@@ -473,7 +473,7 @@ Le champ `embedding` (vecteur de 512 nombres) est omis pour la lisibilité ; l'i
 </details>
 
 <details>
-<summary><strong>Dépannage</strong></summary>
+<summary><strong>🩹 Dépannage</strong></summary>
 
 - **`ffmpeg` introuvable** : installez-le et rouvrez le terminal ; vérifiez avec `ffmpeg -version`. Si `winget` n'est pas disponible sous Windows, téléchargez une build FFmpeg et ajoutez son dossier `bin` au `PATH`.
 - **PowerShell bloque l'activation** : exécutez `Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass`, puis relancez `.\.venv\Scripts\Activate.ps1`.
@@ -486,7 +486,7 @@ Le champ `embedding` (vecteur de 512 nombres) est omis pour la lisibilité ; l'i
 
 </details>
 
-### Équipe 
+### 👋 L'équipe
 
 | Name | Role |  
 | :--- | :--- |
@@ -497,7 +497,7 @@ Le champ `embedding` (vecteur de 512 nombres) est omis pour la lisibilité ; l'i
 
 Trois membres sont étudiants en génie logiciel à l'INSAT. La répartition ci-dessus est proposée pour le hackathon ; elle doit être confirmée par l'équipe avant le rendu.
 
-### Données, licences et provenance
+### 📚 Données, licences et provenance
 
 | Ressource | Usage dans ArchivIA | Licence / statut | Inclus ? |
 |---|---|---|---|
@@ -529,7 +529,7 @@ Cette fiche ne remplace pas un avis juridique. Elle sert à rendre explicite ce 
 
 **Politique de retrait :** si un ayant droit signale un contenu, nous retirons l'index et les images clés concernés, puis nous documentons la décision.
 
-### Limites connues
+### ⚠️ Limites connues
 
 | Limite | Impact | Prochaine action |
 |---|---|---|
@@ -549,7 +549,7 @@ Cette fiche ne remplace pas un avis juridique. Elle sert à rendre explicite ce 
 ---
 
 <a id="feuille-de-route"></a>
-## 5. Feuille de route
+## 5. 🗺️ Feuille de route
 
 | Horizon | Objectif | Livrable vérifiable | Statut |
 |---|---|---|---|
@@ -563,7 +563,7 @@ Cette fiche ne remplace pas un avis juridique. Elle sert à rendre explicite ce 
 ---
 
 <a id="modele-economique"></a>
-## 6. Modèle économique — Business Model Canvas
+## 6. 💼 Modèle économique — Business Model Canvas
 
 > **Emplacement réservé, assumé.** Aucune hypothèse de revenus, de prix ou de partenariat n'est présentée comme validée. Ce canevas sera rempli pour la phase 2, à partir des entretiens et d'un test avec une structure d'archives.
 
@@ -587,7 +587,7 @@ Cette fiche ne remplace pas un avis juridique. Elle sert à rendre explicite ce 
 ---
 
 <a id="contribuer"></a>
-## 7. Contribuer
+## 7. 🤝 Contribuer
 
 ArchivIA est un prototype de hackathon : les retours de terrain sont plus utiles que les étoiles.
 
@@ -601,7 +601,7 @@ Les contributions se font via les tickets (issues) du dépôt. Aucun témoignage
 ---
 
 <a id="licence"></a>
-## 8. Licence
+## 8. 📄 Licence
 
 Le code d'ArchivIA est distribué sous **licence MIT**. Les modèles, poids et bibliothèques tiers conservent leurs licences respectives. Les vidéos indexées ne sont pas couvertes par la licence du code.
 
